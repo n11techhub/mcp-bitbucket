@@ -16,7 +16,8 @@
     "@modelcontextprotocol/sdk": "^1.1.1",
     "axios": "1.8.2",
     "winston": "^3.11.0",
-    "zod": "^3.25.49"
+    "zod": "^3.25.49",
+    "zod-to-json-schema": "^3.24.5"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

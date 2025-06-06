@@ -1,4 +1,5 @@
-export interface MergeOption {
-    message?: string;
-    strategy?: 'merge-commit' | 'squash' | 'fast-forward';
-}
+import { z } from 'zod';
+import { MergeOptionSchema } from '../../application/dtos/MergeOptionSchema';
+
+// Type is inferred from MergeOptionSchema in dtos
+export type MergeOption = z.infer<typeof MergeOptionSchema>;

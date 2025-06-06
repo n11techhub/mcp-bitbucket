@@ -1,5 +1,4 @@
-import {RepositoryInput} from "./RepositoryInput";
+import { z } from 'zod';
+import { GetPullRequestInputSchema } from '../../application/dtos/GetPullRequestInputSchema';
 
-export interface PullRequestParams extends RepositoryInput {
-    prId: number;
-}
+export type PullRequestParams = z.infer<typeof GetPullRequestInputSchema>;

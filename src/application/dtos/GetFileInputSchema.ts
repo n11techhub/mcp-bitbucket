@@ -7,3 +7,5 @@ export const GetFileInputSchema = z.object({
     revision: z.string().optional().describe('Optional revision (branch, tag, or commit hash) to get the file from.'),
 });
 
+export type GetFileInputType = z.infer<typeof GetFileInputSchema>;
+

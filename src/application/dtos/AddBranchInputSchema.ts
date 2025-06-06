@@ -6,3 +6,5 @@ export const AddBranchInputSchema = z.object({
     newBranchName: z.string().describe('Name for the new branch.'),
     sourceBranchOrCommit: z.string().optional().describe('Optional source branch name or commit ID to create the new branch from. Defaults to the repository\'s default branch if not specified.'),
 });
+
+export type AddBranchInputType = z.infer<typeof AddBranchInputSchema>;

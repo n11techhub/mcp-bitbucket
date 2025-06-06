@@ -9,3 +9,5 @@ export const AddPrCommentInputSchema = z.object({
     parentId: z.number().int().positive().optional().describe('Optional ID of the parent comment if this is a reply.'),
     inline: InlineCommentAnchorSchema.optional().describe('Optional details for an inline comment on a specific line in a file.')
 });
+
+export type AddPrCommentInputType = z.infer<typeof AddPrCommentInputSchema>;

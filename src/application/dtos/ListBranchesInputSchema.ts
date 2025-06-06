@@ -6,3 +6,5 @@ export const ListBranchesInputSchema = z.object({
     query: z.string().optional().describe('Optional filter text to find branches by name.'),
     sort: z.string().optional().describe('Optional ordering key (e.g., MODIFICATION, NAME).')
 });
+
+export type ListBranchesInputType = z.infer<typeof ListBranchesInputSchema>;

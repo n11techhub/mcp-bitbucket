@@ -1,7 +1,6 @@
-export interface SearchContentInput {
-    workspaceSlug: string;
-    query: string;
-    scope?: string;
-    language?: string;
-    extension?: string;
-}
+import { z } from 'zod';
+import { SearchContentInputSchema } from '../../application/dtos/SearchContentInputSchema.js';
+
+// Type is inferred from SearchContentInputSchema in dtos
+export type SearchContentInput = z.infer<typeof SearchContentInputSchema>;
+

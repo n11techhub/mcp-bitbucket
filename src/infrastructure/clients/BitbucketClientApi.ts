@@ -176,6 +176,30 @@ export class BitbucketClientApi {
         };
     }
 
+    public async getRepo(input: GetRepoInput) {
+        const { workspaceSlug, repoSlug } = input;
+        const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey for Bitbucket Server
+        const apiUrl = `/projects/${projectKey}/repos/${repoSlug}`;
+
+        try {
+            logger.info(`Getting repository details for projectKey: ${projectKey}, repoSlug: ${repoSlug}`);
+            const response = await this.api.get(apiUrl);
+            return {
+                content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+            };
+        } catch (error: any) {
+            logger.error(`Error getting repository (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data || error.message);
+            if (axios.isAxiosError(error) && error.response) {
+                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
+                throw new McpError(
+                    ErrorCode.InternalError,
+                    `Bitbucket API error while getting repository: ${errorMessage}`
+                );
+            }
+            throw new McpError(ErrorCode.InternalError, `Failed to get repository: ${error.message}`);
+        }
+    }
+
     // Implemented listWorkspaces method
     public async listRepositories(input: ListRepositoriesInput = {}) {
         const {workspaceSlug, projectKey, query, role} = input;
