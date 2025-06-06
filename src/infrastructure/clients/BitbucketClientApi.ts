@@ -200,7 +200,6 @@ export class BitbucketClientApi {
         }
     }
 
-    // Implemented listWorkspaces method
     public async listRepositories(input: ListRepositoriesInput = {}) {
         const {workspaceSlug, projectKey, query, role} = input;
         let apiUrl = '';
@@ -286,7 +285,6 @@ export class BitbucketClientApi {
         params.q = searchQuery;
 
         if (scope) {
-            // If scope is provided, assume it's a repository slug to narrow down the search
             params.repositoryKey = scope;
         }
 
@@ -364,8 +362,6 @@ export class BitbucketClientApi {
             if (inline.fileType) {
                 requestBody.anchor.fileType = inline.fileType;
             }
-            // Bitbucket Server might default fileType to TO for line comments if not specified
-            // and might infer srcPath from path if not explicitly different.
         }
 
         try {
@@ -399,7 +395,6 @@ export class BitbucketClientApi {
         if (sourceBranchOrCommit) {
             requestBody.startPoint = sourceBranchOrCommit;
         }
-        // If sourceBranchOrCommit is not provided, Bitbucket Server typically defaults to the repo's default branch.
 
         try {
             logger.info(`Creating branch with apiUrl: ${apiUrl}, body: ${JSON.stringify(requestBody)}`);
@@ -432,7 +427,6 @@ export class BitbucketClientApi {
 
         try {
             logger.info(`Getting file content with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
-            // For raw content, we expect 'text' responseType
             const response = await this.api.get(apiUrl, {params, responseType: 'text'});
             return {
                 content: [{type: 'text', text: response.data}] // response.data should be the raw file content as string
@@ -440,7 +434,6 @@ export class BitbucketClientApi {
         } catch (error: any) {
             logger.error(`Error getting file content (projectKey: ${projectKey}, repoSlug: ${repoSlug}, filePath: ${filePath}, revision: ${revision}):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
-                // If the responseType was 'text', error.response.data might already be a string or an object if Bitbucket returned JSON error
                 let errorMessage = error.message;
                 if (typeof error.response.data === 'string') {
                     errorMessage = error.response.data;
@@ -460,7 +453,6 @@ export class BitbucketClientApi {
 
     public async bb_get_repo(input: GetRepoInput) {
         const {workspaceSlug, repoSlug} = input;
-        // In Bitbucket Server API, workspaceSlug often corresponds to projectKey
         const projectKey = workspaceSlug;
         const apiUrl = `/projects/${projectKey}/repos/${repoSlug}`;
 

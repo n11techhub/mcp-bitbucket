@@ -141,22 +141,18 @@ export class McpServerSetup {
 
                 switch (request.params.name) {
                     case 'create_pull_request': {
-                        // args is already validated and typed by CreatePullRequestInputSchema by the MCP server
                         return await this.api.createPullRequest(args as CreatePullRequestInput);
                     }
                     case 'get_pull_request': {
-                        // args is already validated and typed by GetPullRequestInputSchema by the MCP server
                         const typedArgs = args as GetPullRequestInput;
                         const project = typedArgs.project ?? this.api.config.defaultProject;
 
                         if (!project) {
                             throw new McpError(ErrorCode.InvalidParams, 'Project must be provided for get_pull_request (as args.project or BITBUCKET_DEFAULT_PROJECT)');
                         }
-                        // Pass all args, but ensure project is resolved
                         return await this.api.getPullRequest({ ...typedArgs, project });
                     }
                     case 'merge_pull_request': {
-                        // args is already validated and typed by MergePullRequestInputSchema by the MCP server
                         const typedArgs = args as MergePullRequestInput;
                         const project = typedArgs.project ?? this.api.config.defaultProject;
 
@@ -178,7 +174,6 @@ export class McpServerSetup {
                         return await this.api.mergePullRequest(prParams, mergeOptions);
                     }
                     case 'decline_pull_request': {
-                        // args is already validated and typed by DeclinePullRequestInputSchema by the MCP server
                         const typedArgs = args as DeclinePullRequestInput;
                         const project = typedArgs.project ?? this.api.config.defaultProject;
 
@@ -195,7 +190,6 @@ export class McpServerSetup {
                         return await this.api.declinePullRequest(prParams, typedArgs.message);
                     }
                     case 'add_comment': {
-                        // args is already validated and typed by AddCommentInputSchema by the MCP server
                         const typedArgs = args as AddCommentInput;
                         const project = typedArgs.project ?? this.api.config.defaultProject;
 
@@ -217,7 +211,6 @@ export class McpServerSetup {
                         return await this.api.addComment(prParams, commentOptions);
                     }
                     case 'get_diff': {
-                        // args is already validated and typed by GetDiffInputSchema by the MCP server
                         const typedArgs = args as GetDiffInput;
                         const project = typedArgs.project ?? this.api.config.defaultProject;
 
@@ -234,7 +227,6 @@ export class McpServerSetup {
                         return await this.api.getDiff(prParams, typedArgs.contextLines);
                     }
                     case 'get_reviews': {
-                        // args is already validated and typed by GetPullRequestInputSchema by the MCP server
                         const typedArgs = args as GetPullRequestInput;
                         const project = typedArgs.project ?? this.api.config.defaultProject;
 
@@ -251,41 +243,27 @@ export class McpServerSetup {
                         return await this.api.getReviews(prParams);
                     }
                     case 'bb_ls_workspaces': {
-                        // args is already validated and typed by ListWorkspacesInputSchema by the MCP server
-                        // This tool doesn't need the project context from pullRequestParams
                         return await this.api.listWorkspaces(args as ListWorkspacesInputType);
                     }
                     case 'bb_ls_repos': {
-                        // args is already validated and typed by ListRepositoriesInputSchema by the MCP server
-                        // This tool doesn't need the project context from pullRequestParams for global search
-                        // but uses projectKey or workspaceSlug if provided in args.
                         return await this.api.listRepositories(args as ListRepositoriesInputType);
                     }
                     case 'bb_search': {
-                        // args is already validated and typed by SearchContentInputSchema by the MCP server
                         return await this.api.searchContent(args as SearchContentInputType);
                     }
                     case 'bb_get_repo': {
-                        // args is already validated and typed by GetRepoInputSchema by the MCP server
-                        // Note: this.api.getRepo method is currently missing in BitbucketClientApi.ts
                         return await this.api.getRepo(args as GetRepoInputType);
                     }
                     case 'bb_get_file': {
-                        // args is already validated and typed by GetFileInputSchema by the MCP server
                         return await this.api.bb_get_file(args as GetFileInputType);
                     }
                     case 'bb_add_branch': {
-                        // args is already validated and typed by AddBranchInputSchema by the MCP server
                         return await this.api.bb_add_branch(args as AddBranchInputType);
                     }
                     case 'bb_add_pr_comment': {
-                        // args is already validated and typed by AddPrCommentInputSchema by the MCP server
-                        // The bb_add_pr_comment method in BitbucketClientApi handles mapping workspaceSlug to projectKey
                         return await this.api.bb_add_pr_comment(args as AddPrCommentInputType);
                     }
                     case 'bb_list_branches': {
-                        // args is already validated and typed by ListBranchesInputSchema by the MCP server
-                        // The bb_list_branches method in BitbucketClientApi handles mapping workspaceSlug to projectKey
                         return await this.api.bb_list_branches(args as ListBranchesInputType);
                     }
                     default: {
@@ -306,21 +284,5 @@ export class McpServerSetup {
                 throw error;
             }
         });
-
-        // We've integrated the bb_ls_workspaces tool into the main switch statement above
-        // No need for a separate handler
-    }
-
-    private isPullRequestInput(args: unknown): args is PullRequestInput {
-        const input = args as Partial<PullRequestInput>;
-        return typeof args === 'object' &&
-            args !== null &&
-            typeof input.project === 'string' &&
-            typeof input.repository === 'string' &&
-            typeof input.title === 'string' &&
-            typeof input.sourceBranch === 'string' &&
-            typeof input.targetBranch === 'string' &&
-            (input.description === undefined || typeof input.description === 'string') &&
-            (input.reviewers === undefined || Array.isArray(input.reviewers));
     }
 }
