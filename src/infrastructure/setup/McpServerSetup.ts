@@ -1,4 +1,3 @@
-import {PullRequestParams} from "../input/PullRequestParams.js";
 import { GetRepoInputSchema, GetRepoInputType } from "../../application/dtos/GetRepoInputSchema.js";
 import { GetFileInputSchema, GetFileInputType } from "../../application/dtos/GetFileInputSchema.js";
 import { AddBranchInputSchema, AddBranchInputType } from "../../application/dtos/AddBranchInputSchema.js";
@@ -7,10 +6,8 @@ import { ListBranchesInputSchema, ListBranchesInputType } from "../../applicatio
 import { CreatePullRequestInputSchema, CreatePullRequestInput } from '../../application/dtos/CreatePullRequestInputSchema.js';
 import { GetPullRequestInputSchema, GetPullRequestInput } from '../../application/dtos/GetPullRequestInputSchema.js';
 import { MergePullRequestInputSchema, MergePullRequestInput } from '../../application/dtos/MergePullRequestInputSchema.js';
-import { MergeOptionType } from '../../application/dtos/MergeOptionSchema.js';
 import { DeclinePullRequestInputSchema, DeclinePullRequestInput } from '../../application/dtos/DeclinePullRequestInputSchema.js';
 import { AddCommentInputSchema, AddCommentInput } from '../../application/dtos/AddCommentInputSchema.js';
-import { CommentOptionType } from '../../application/dtos/CommentOptionSchema.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { GetDiffInputSchema, GetDiffInput } from '../../application/dtos/GetDiffInputSchema.js';
 import { ListWorkspacesInputSchema, ListWorkspacesInputType } from '../../application/dtos/ListWorkspacesInputSchema.js';
@@ -18,20 +15,13 @@ import { ListRepositoriesInputSchema, ListRepositoriesInputType } from '../../ap
 import { SearchContentInputSchema, SearchContentInputType } from '../../application/dtos/SearchContentInputSchema.js';
 import {Server} from "@modelcontextprotocol/sdk/server/index.js";
 import {CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError} from "@modelcontextprotocol/sdk/types.js";
-import {PullRequestInput} from "../input/PullRequestInput.js";
-import winston from "winston";
+import logger from '../logging/logger.js';
 import {BitbucketClientApi} from "../clients/BitbucketClientApi.js";
 import { IBitbucketUseCase } from '../../application/use-cases/IBitbucketUseCase.js';
 import { BitbucketUseCase } from '../../application/use-cases/impl/BitbucketUseCase.js';
 import axios from "axios";
 
-const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    transports: [
-        new winston.transports.File({filename: 'bitbucket.log'})
-    ]
-});
+
 
 export class McpServerSetup {
     public readonly server: Server;

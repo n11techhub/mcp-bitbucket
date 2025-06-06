@@ -1,15 +1,7 @@
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
-import winston from 'winston';
+import logger from './logging/logger.js';
 import {McpServerSetup} from "./setup/McpServerSetup.js";
 import {BitbucketClientApi} from "./clients/BitbucketClientApi.js";
-
-const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    transports: [
-        new winston.transports.File({filename: 'bitbucket.log'})
-    ]
-});
 
 
 class BitbucketServer {

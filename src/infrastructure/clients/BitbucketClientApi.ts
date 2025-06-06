@@ -13,17 +13,11 @@ import {AddPrCommentInput} from "../input/AddPrCommentInput";
 import {AddBranchInput} from "../input/AddBranchInput";
 import {GetFileInput} from "../input/GetFileInput";
 import {GetRepoInput} from "../input/GetRepoInput";
-import winston from "winston";
+import logger from '../logging/logger.js';
 import {ErrorCode, McpError} from "@modelcontextprotocol/sdk/types.js";
 import { IBitbucketClient } from '../../application/ports/IBitbucketClient.js';
 
-const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    transports: [
-        new winston.transports.File({filename: 'bitbucket.log'})
-    ]
-});
+
 
 export class BitbucketClientApi implements IBitbucketClient {
     private readonly api: AxiosInstance;
