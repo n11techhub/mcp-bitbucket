@@ -15,6 +15,7 @@ import {GetFileInput} from "../input/GetFileInput";
 import {GetRepoInput} from "../input/GetRepoInput";
 import winston from "winston";
 import {ErrorCode, McpError} from "@modelcontextprotocol/sdk/types.js";
+import { IBitbucketClient } from '../../application/ports/IBitbucketClient.js';
 
 const logger = winston.createLogger({
     level: 'info',
@@ -24,7 +25,7 @@ const logger = winston.createLogger({
     ]
 });
 
-export class BitbucketClientApi {
+export class BitbucketClientApi implements IBitbucketClient {
     private readonly api: AxiosInstance;
     readonly config: BitbucketConfig;
 
@@ -473,5 +474,9 @@ export class BitbucketClientApi {
             }
             throw new McpError(ErrorCode.InternalError, `Failed to get repository: ${error.message}`);
         }
+    }
+
+    public getDefaultProjectKey(): string | undefined {
+        return this.config.defaultProject;
     }
 }

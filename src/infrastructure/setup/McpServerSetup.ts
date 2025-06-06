@@ -21,6 +21,8 @@ import {CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError} from
 import {PullRequestInput} from "../input/PullRequestInput.js";
 import winston from "winston";
 import {BitbucketClientApi} from "../clients/BitbucketClientApi.js";
+import { IBitbucketUseCase } from '../../application/use-cases/IBitbucketUseCase.js';
+import { BitbucketUseCase } from '../../application/use-cases/impl/BitbucketUseCase.js';
 import axios from "axios";
 
 const logger = winston.createLogger({
@@ -34,9 +36,11 @@ const logger = winston.createLogger({
 export class McpServerSetup {
     public readonly server: Server;
     private readonly api: BitbucketClientApi;
+    private readonly bitbucketUseCase: IBitbucketUseCase;
 
     constructor(api: BitbucketClientApi) {
         this.api = api;
+        this.bitbucketUseCase = new BitbucketUseCase(api);
         this.server = new Server(
             {
                 name: 'bitbucket-mcp-server',
@@ -140,132 +144,36 @@ export class McpServerSetup {
                 const args = request.params.arguments ?? {};
 
                 switch (request.params.name) {
-                    case 'create_pull_request': {
-                        return await this.api.createPullRequest(args as CreatePullRequestInput);
-                    }
-                    case 'get_pull_request': {
-                        const typedArgs = args as GetPullRequestInput;
-                        const project = typedArgs.project ?? this.api.config.defaultProject;
-
-                        if (!project) {
-                            throw new McpError(ErrorCode.InvalidParams, 'Project must be provided for get_pull_request (as args.project or BITBUCKET_DEFAULT_PROJECT)');
-                        }
-                        return await this.api.getPullRequest({ ...typedArgs, project });
-                    }
-                    case 'merge_pull_request': {
-                        const typedArgs = args as MergePullRequestInput;
-                        const project = typedArgs.project ?? this.api.config.defaultProject;
-
-                        if (!project) {
-                            throw new McpError(ErrorCode.InvalidParams, 'Project must be provided for merge_pull_request (as args.project or BITBUCKET_DEFAULT_PROJECT)');
-                        }
-
-                        const prParams: PullRequestParams = {
-                            project,
-                            repository: typedArgs.repository,
-                            prId: typedArgs.prId
-                        };
-
-                        const mergeOptions: MergeOptionType = {
-                            message: typedArgs.message,
-                            strategy: typedArgs.strategy
-                        };
-
-                        return await this.api.mergePullRequest(prParams, mergeOptions);
-                    }
-                    case 'decline_pull_request': {
-                        const typedArgs = args as DeclinePullRequestInput;
-                        const project = typedArgs.project ?? this.api.config.defaultProject;
-
-                        if (!project) {
-                            throw new McpError(ErrorCode.InvalidParams, 'Project must be provided for decline_pull_request (as args.project or BITBUCKET_DEFAULT_PROJECT)');
-                        }
-
-                        const prParams: PullRequestParams = {
-                            project,
-                            repository: typedArgs.repository,
-                            prId: typedArgs.prId
-                        };
-
-                        return await this.api.declinePullRequest(prParams, typedArgs.message);
-                    }
-                    case 'add_comment': {
-                        const typedArgs = args as AddCommentInput;
-                        const project = typedArgs.project ?? this.api.config.defaultProject;
-
-                        if (!project) {
-                            throw new McpError(ErrorCode.InvalidParams, 'Project must be provided for add_comment (as args.project or BITBUCKET_DEFAULT_PROJECT)');
-                        }
-
-                        const prParams: PullRequestParams = {
-                            project,
-                            repository: typedArgs.repository,
-                            prId: typedArgs.prId
-                        };
-
-                        const commentOptions: CommentOptionType = {
-                            text: typedArgs.text,
-                            parentId: typedArgs.parentId
-                        };
-
-                        return await this.api.addComment(prParams, commentOptions);
-                    }
-                    case 'get_diff': {
-                        const typedArgs = args as GetDiffInput;
-                        const project = typedArgs.project ?? this.api.config.defaultProject;
-
-                        if (!project) {
-                            throw new McpError(ErrorCode.InvalidParams, 'Project must be provided for get_diff (as args.project or BITBUCKET_DEFAULT_PROJECT)');
-                        }
-
-                        const prParams: PullRequestParams = {
-                            project,
-                            repository: typedArgs.repository,
-                            prId: typedArgs.prId
-                        };
-
-                        return await this.api.getDiff(prParams, typedArgs.contextLines);
-                    }
-                    case 'get_reviews': {
-                        const typedArgs = args as GetPullRequestInput;
-                        const project = typedArgs.project ?? this.api.config.defaultProject;
-
-                        if (!project) {
-                            throw new McpError(ErrorCode.InvalidParams, 'Project must be provided for get_reviews (as args.project or BITBUCKET_DEFAULT_PROJECT)');
-                        }
-
-                        const prParams: PullRequestParams = {
-                            project,
-                            repository: typedArgs.repository,
-                            prId: typedArgs.prId
-                        };
-
-                        return await this.api.getReviews(prParams);
-                    }
-                    case 'bb_ls_workspaces': {
-                        return await this.api.listWorkspaces(args as ListWorkspacesInputType);
-                    }
-                    case 'bb_ls_repos': {
-                        return await this.api.listRepositories(args as ListRepositoriesInputType);
-                    }
-                    case 'bb_search': {
-                        return await this.api.searchContent(args as SearchContentInputType);
-                    }
-                    case 'bb_get_repo': {
-                        return await this.api.getRepo(args as GetRepoInputType);
-                    }
-                    case 'bb_get_file': {
-                        return await this.api.bb_get_file(args as GetFileInputType);
-                    }
-                    case 'bb_add_branch': {
-                        return await this.api.bb_add_branch(args as AddBranchInputType);
-                    }
-                    case 'bb_add_pr_comment': {
-                        return await this.api.bb_add_pr_comment(args as AddPrCommentInputType);
-                    }
-                    case 'bb_list_branches': {
-                        return await this.api.bb_list_branches(args as ListBranchesInputType);
-                    }
+                    case 'create_pull_request':
+                        return await this.bitbucketUseCase.createPullRequest(args as CreatePullRequestInput);
+                    case 'get_pull_request':
+                        return await this.bitbucketUseCase.getPullRequest(args as GetPullRequestInput);
+                    case 'merge_pull_request':
+                        return await this.bitbucketUseCase.mergePullRequest(args as MergePullRequestInput);
+                    case 'decline_pull_request':
+                        return await this.bitbucketUseCase.declinePullRequest(args as DeclinePullRequestInput);
+                    case 'add_comment':
+                        return await this.bitbucketUseCase.addComment(args as AddCommentInput);
+                    case 'get_diff':
+                        return await this.bitbucketUseCase.getDiff(args as GetDiffInput);
+                    case 'get_reviews':
+                        return await this.bitbucketUseCase.getReviews(args as GetPullRequestInput);
+                    case 'bb_ls_workspaces':
+                        return await this.bitbucketUseCase.listWorkspaces(args as ListWorkspacesInputType);
+                    case 'bb_ls_repos':
+                        return await this.bitbucketUseCase.listRepositories(args as ListRepositoriesInputType);
+                    case 'bb_search':
+                        return await this.bitbucketUseCase.searchContent(args as SearchContentInputType);
+                    case 'bb_get_repo':
+                        return await this.bitbucketUseCase.getRepo(args as GetRepoInputType);
+                    case 'bb_get_file':
+                        return await this.bitbucketUseCase.getFile(args as GetFileInputType);
+                    case 'bb_add_branch':
+                        return await this.bitbucketUseCase.addBranch(args as AddBranchInputType);
+                    case 'bb_add_pr_comment':
+                        return await this.bitbucketUseCase.addPullRequestComment(args as AddPrCommentInputType);
+                    case 'bb_list_branches':
+                        return await this.bitbucketUseCase.listBranches(args as ListBranchesInputType);
                     default: {
                         throw new McpError(
                             ErrorCode.MethodNotFound,
