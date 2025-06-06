@@ -1,14 +1,14 @@
-import {PullRequestParams} from "../request/PullRequestParams.js";
-import {GetRepoInputSchema} from "../../application/schema/GetRepoInputSchema.js";
-import {GetFileInputSchema} from "../../application/schema/GetFileInputSchema.js";
-import {AddBranchInputSchema} from "../../application/schema/AddBranchInputSchema.js";
-import {AddPrCommentInputSchema} from "../../application/schema/AddPrCommentInputSchema.js";
-import {ListBranchesInputSchema} from "../../application/schema/ListBranchesInputSchema.js";
+import {PullRequestParams} from "../input/PullRequestParams.js";
+import {GetRepoInputSchema} from "../../application/dtos/GetRepoInputSchema.js";
+import {GetFileInputSchema} from "../../application/dtos/GetFileInputSchema.js";
+import {AddBranchInputSchema} from "../../application/dtos/AddBranchInputSchema.js";
+import {AddPrCommentInputSchema} from "../../application/dtos/AddPrCommentInputSchema.js";
+import {ListBranchesInputSchema} from "../../application/dtos/ListBranchesInputSchema.js";
 import {Server} from "@modelcontextprotocol/sdk/server/index.js";
 import {CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError} from "@modelcontextprotocol/sdk/types.js";
-import {PullRequestInput} from "../request/PullRequestInput";
+import {PullRequestInput} from "../input/PullRequestInput.js";
 import winston from "winston";
-import {BitbucketClientApi} from "../BitbucketClientApi";
+import {BitbucketClientApi} from "../clients/BitbucketClientApi.js";
 import axios from "axios";
 
 const logger = winston.createLogger({

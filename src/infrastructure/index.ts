@@ -1,7 +1,7 @@
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
 import winston from 'winston';
 import {McpServerSetup} from "./setup/McpServerSetup.js";
-import {BitbucketClientApi} from "./BitbucketClientApi.js";
+import {BitbucketClientApi} from "./clients/BitbucketClientApi.js";
 
 const logger = winston.createLogger({
     level: 'info',
