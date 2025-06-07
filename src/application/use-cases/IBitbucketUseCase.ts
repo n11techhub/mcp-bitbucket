@@ -2,20 +2,20 @@
 import * as dtos from '../dtos/index.js';
 
 export interface IBitbucketUseCase {
-    createPullRequest(input: dtos.CreatePullRequestInput): Promise<any>;
-    getPullRequest(input: dtos.GetPullRequestInput): Promise<any>;
-    mergePullRequest(input: dtos.MergePullRequestInput): Promise<any>;
-    declinePullRequest(input: dtos.DeclinePullRequestInput): Promise<any>;
-    addComment(input: dtos.AddCommentInput): Promise<any>;
-    getDiff(input: dtos.GetDiffInput): Promise<any>;
-    getReviews(input: dtos.GetPullRequestInput): Promise<any>;
+    bitbucketCreatePullRequest(input: dtos.CreatePullRequestInput): Promise<any>;
+    bitbucketGetPullRequestDetails(input: dtos.GetPullRequestInput): Promise<any>;
+    bitbucketMergePullRequest(input: dtos.MergePullRequestInput): Promise<any>;
+    bitbucketDeclinePullRequest(input: dtos.DeclinePullRequestInput): Promise<any>;
+    bitbucketAddGeneralPullRequestComment(input: dtos.AddCommentInput): Promise<any>;
+    bitbucketGetPullRequestDiff(input: dtos.GetDiffInput): Promise<any>;
+    bitbucketGetPullRequestReviews(input: dtos.GetPullRequestInput): Promise<any>;
 
-    listWorkspaces(input: dtos.ListWorkspacesInputType): Promise<any>;
-    listRepositories(input: dtos.ListRepositoriesInputType): Promise<any>;
-    searchContent(input: dtos.SearchContentInputType): Promise<any>;
-    getRepo(input: dtos.GetRepoInputType): Promise<any>;
-    getFile(input: dtos.GetFileInputType): Promise<any>;
-    addBranch(input: dtos.AddBranchInputType): Promise<any>;
-    addPullRequestComment(input: dtos.AddPrCommentInputType): Promise<any>;
-    listBranches(input: dtos.ListBranchesInputType): Promise<any>;
+    bitbucketListWorkspaces(input: dtos.ListWorkspacesInputType): Promise<any>;
+    bitbucketListRepositories(input: dtos.ListRepositoriesInputType): Promise<any>;
+    bitbucketSearchContent(input: dtos.SearchContentInputType): Promise<any>;
+    bitbucketGetRepositoryDetails(input: dtos.GetRepoInputType): Promise<any>;
+    bitbucketGetFileContent(input: dtos.GetFileInputType): Promise<any>;
+    bitbucketCreateBranch(input: dtos.AddBranchInputType): Promise<any>;
+    bitbucketAddPullRequestFileLineComment(input: dtos.AddPrCommentInputType): Promise<any>;
+    bitbucketListRepositoryBranches(input: dtos.ListBranchesInputType): Promise<any>;
 }

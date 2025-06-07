@@ -49,21 +49,21 @@ export class McpServerSetup {
         this.server.onerror = (error: any) => this.logger.error('[MCP Error]', error instanceof Error ? error.message : String(error), error instanceof Error ? { stack: error.stack } : {});
         
         this.toolHandlers = new Map();
-        this.toolHandlers.set('create_pull_request', async (args: any) => this.bitbucketUseCase.createPullRequest(args as CreatePullRequestInput));
-        this.toolHandlers.set('get_pull_request', async (args: any) => this.bitbucketUseCase.getPullRequest(args as GetPullRequestInput));
-        this.toolHandlers.set('merge_pull_request', async (args: any) => this.bitbucketUseCase.mergePullRequest(args as MergePullRequestInput));
-        this.toolHandlers.set('decline_pull_request', async (args: any) => this.bitbucketUseCase.declinePullRequest(args as DeclinePullRequestInput));
-        this.toolHandlers.set('add_comment', async (args: any) => this.bitbucketUseCase.addComment(args as AddCommentInput));
-        this.toolHandlers.set('get_diff', async (args: any) => this.bitbucketUseCase.getDiff(args as GetDiffInput));
-        this.toolHandlers.set('get_reviews', async (args: any) => this.bitbucketUseCase.getReviews(args as GetPullRequestInput)); // Note: GetPullRequestInput is correct based on original switch
-        this.toolHandlers.set('bb_ls_workspaces', async (args: any) => this.bitbucketUseCase.listWorkspaces(args as ListWorkspacesInputType));
-        this.toolHandlers.set('bb_ls_repos', async (args: any) => this.bitbucketUseCase.listRepositories(args as ListRepositoriesInputType));
-        this.toolHandlers.set('bb_search', async (args: any) => this.bitbucketUseCase.searchContent(args as SearchContentInputType));
-        this.toolHandlers.set('bb_get_repo', async (args: any) => this.bitbucketUseCase.getRepo(args as GetRepoInputType));
-        this.toolHandlers.set('bb_get_file', async (args: any) => this.bitbucketUseCase.getFile(args as GetFileInputType));
-        this.toolHandlers.set('bb_add_branch', async (args: any) => this.bitbucketUseCase.addBranch(args as AddBranchInputType));
-        this.toolHandlers.set('bb_add_pr_comment', async (args: any) => this.bitbucketUseCase.addPullRequestComment(args as AddPrCommentInputType));
-        this.toolHandlers.set('bb_list_branches', async (args: any) => this.bitbucketUseCase.listBranches(args as ListBranchesInputType));
+        this.toolHandlers.set('bitbucket_create_pull_request', async (args: any) => this.bitbucketUseCase.bitbucketCreatePullRequest(args as CreatePullRequestInput));
+        this.toolHandlers.set('bitbucket_get_pull_request_details', async (args: any) => this.bitbucketUseCase.bitbucketGetPullRequestDetails(args as GetPullRequestInput));
+        this.toolHandlers.set('bitbucket_merge_pull_request', async (args: any) => this.bitbucketUseCase.bitbucketMergePullRequest(args as MergePullRequestInput));
+        this.toolHandlers.set('bitbucket_decline_pull_request', async (args: any) => this.bitbucketUseCase.bitbucketDeclinePullRequest(args as DeclinePullRequestInput));
+        this.toolHandlers.set('bitbucket_add_pull_request_comment', async (args: any) => this.bitbucketUseCase.bitbucketAddGeneralPullRequestComment(args as AddCommentInput));
+        this.toolHandlers.set('bitbucket_get_pull_request_diff', async (args: any) => this.bitbucketUseCase.bitbucketGetPullRequestDiff(args as GetDiffInput));
+        this.toolHandlers.set('bitbucket_get_pull_request_reviews', async (args: any) => this.bitbucketUseCase.bitbucketGetPullRequestReviews(args as GetPullRequestInput)); // Note: GetPullRequestInput is correct based on original switch
+        this.toolHandlers.set('bitbucket_list_workspaces', async (args: any) => this.bitbucketUseCase.bitbucketListWorkspaces(args as ListWorkspacesInputType));
+        this.toolHandlers.set('bitbucket_list_repositories', async (args: any) => this.bitbucketUseCase.bitbucketListRepositories(args as ListRepositoriesInputType));
+        this.toolHandlers.set('bitbucket_search_content', async (args: any) => this.bitbucketUseCase.bitbucketSearchContent(args as SearchContentInputType));
+        this.toolHandlers.set('bitbucket_get_repository_details', async (args: any) => this.bitbucketUseCase.bitbucketGetRepositoryDetails(args as GetRepoInputType));
+        this.toolHandlers.set('bitbucket_get_file_content', async (args: any) => this.bitbucketUseCase.bitbucketGetFileContent(args as GetFileInputType));
+        this.toolHandlers.set('bitbucket_create_branch', async (args: any) => this.bitbucketUseCase.bitbucketCreateBranch(args as AddBranchInputType));
+        this.toolHandlers.set('bitbucket_add_pull_request_file_line_comment', async (args: any) => this.bitbucketUseCase.bitbucketAddPullRequestFileLineComment(args as AddPrCommentInputType));
+        this.toolHandlers.set('bitbucket_list_repository_branches', async (args: any) => this.bitbucketUseCase.bitbucketListRepositoryBranches(args as ListBranchesInputType));
     }
 
 
@@ -71,78 +71,78 @@ export class McpServerSetup {
         this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
             tools: [
                 {
-                    name: 'create_pull_request',
-                    description: 'Create a new pull request',
+                    name: 'bitbucket_create_pull_request',
+                    description: 'Creates a new Bitbucket pull request',
                     inputSchema: zodToJsonSchema(CreatePullRequestInputSchema)
                 },
                 {
-                    name: 'get_pull_request',
-                    description: 'Get pull request details',
+                    name: 'bitbucket_get_pull_request_details',
+                    description: 'Gets detailed information for a Bitbucket pull request',
                     inputSchema: zodToJsonSchema(GetPullRequestInputSchema)
                 },
                 {
-                    name: 'merge_pull_request',
-                    description: 'Merge a pull request',
+                    name: 'bitbucket_merge_pull_request',
+                    description: 'Merges a Bitbucket pull request',
                     inputSchema: zodToJsonSchema(MergePullRequestInputSchema)
                 },
                 {
-                    name: 'decline_pull_request',
-                    description: 'Decline a pull request',
+                    name: 'bitbucket_decline_pull_request',
+                    description: 'Declines a Bitbucket pull request',
                     inputSchema: zodToJsonSchema(DeclinePullRequestInputSchema)
                 },
                 {
-                    name: 'add_comment',
-                    description: 'Add a comment to a pull request',
+                    name: 'bitbucket_add_pull_request_comment',
+                    description: 'Adds a general comment to a Bitbucket pull request.',
                     inputSchema: zodToJsonSchema(AddCommentInputSchema)
                 },
                 {
-                    name: 'get_diff',
-                    description: 'Get pull request diff',
+                    name: 'bitbucket_get_pull_request_diff',
+                    description: 'Gets the diff for a Bitbucket pull request',
                     inputSchema: zodToJsonSchema(GetDiffInputSchema)
                 },
                 {
-                    name: 'get_reviews',
-                    description: 'Get pull request reviews',
+                    name: 'bitbucket_get_pull_request_reviews',
+                    description: 'Gets reviews for a Bitbucket pull request',
                     inputSchema: zodToJsonSchema(GetPullRequestInputSchema)
                 },
                 {
-                    name: 'bb_ls_workspaces',
-                    description: 'Lists available workspaces (query: str opt). Use: View accessible workspaces.',
+                    name: 'bitbucket_list_workspaces',
+                    description: 'Lists available Bitbucket workspaces.',
                     inputSchema: zodToJsonSchema(ListWorkspacesInputSchema),
                 },
                 {
-                    name: 'bb_ls_repos',
-                    description: 'Lists repositories (workspaceSlug: str opt, projectKey: str opt, query: str opt, role: str opt). Use: Find repositories.',
+                    name: 'bitbucket_list_repositories',
+                    description: 'Lists Bitbucket repositories.',
                     inputSchema: zodToJsonSchema(ListRepositoriesInputSchema)
                 },
                 {
-                    name: 'bb_search',
-                    description: 'Searches Bitbucket content (workspaceSlug: str req, query: str req, scope: str opt, language: str opt, extension: str opt). Use: Find code or PRs.',
+                    name: 'bitbucket_search_content',
+                    description: 'Searches content within Bitbucket repositories.',
                     inputSchema: zodToJsonSchema(SearchContentInputSchema)
                 },
                 {
-                    name: 'bb_get_repo',
-                    description: 'Gets repository details (workspaceSlug: str req, repoSlug: str req). Use: Access repo information.',
+                    name: 'bitbucket_get_repository_details',
+                    description: 'Gets details for a specific Bitbucket repository.',
                     inputSchema: zodToJsonSchema(GetRepoInputSchema)
                 },
                 {
-                    name: 'bb_get_file',
-                    description: 'Gets file content (workspaceSlug: str req, repoSlug: str req, filePath: str req, revision: str opt). Use: View specific file.',
+                    name: 'bitbucket_get_file_content',
+                    description: 'Gets the content of a specific file from a Bitbucket repository.',
                     inputSchema: zodToJsonSchema(GetFileInputSchema)
                 },
                 {
-                    name: 'bb_add_branch',
-                    description: 'Creates a branch (workspaceSlug: str req, repoSlug: str req, newBranchName: str req, sourceBranchOrCommit: str opt). Use: Create a feature branch.',
+                    name: 'bitbucket_create_branch',
+                    description: 'Creates a new branch in a Bitbucket repository.',
                     inputSchema: zodToJsonSchema(AddBranchInputSchema)
                 },
                 {
-                    name: 'bb_add_pr_comment',
-                    description: 'Adds a comment to a Pull Request, optionally as an inline comment. (workspaceSlug: str req, repoSlug: str req, prId: num req, content: str req, parentId: num opt, inline: obj opt). Use: Add feedback to PRs.',
+                    name: 'bitbucket_add_pull_request_file_line_comment',
+                    description: 'Adds a comment to a Bitbucket pull request, optionally as an inline comment on a specific file and line.',
                     inputSchema: zodToJsonSchema(AddPrCommentInputSchema)
                 },
                 {
-                    name: 'bb_list_branches',
-                    description: 'Lists branches (workspaceSlug: str req, repoSlug: str req, query: str opt, sort: str opt). Use: View all branches.',
+                    name: 'bitbucket_list_repository_branches',
+                    description: 'Lists branches for a Bitbucket repository.',
                     inputSchema: zodToJsonSchema(ListBranchesInputSchema)
                 }
             ]

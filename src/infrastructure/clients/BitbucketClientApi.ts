@@ -45,7 +45,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         });
     }
 
-    public async createPullRequest(input: PullRequestInput) {
+    public async createBitbucketPullRequest(input: PullRequestInput): Promise<any> {
         const response = await this.api.post(
             `/projects/${input.project}/repos/${input.repository}/pull-requests`,
             {
@@ -74,7 +74,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         };
     }
 
-    public async getPullRequest(params: PullRequestParams) {
+    public async getBitbucketPullRequestDetails(params: PullRequestParams): Promise<any> {
         const {project, repository, prId} = params;
         const response = await this.api.get(
             `/projects/${project}/repos/${repository}/pull-requests/${prId}`
@@ -85,7 +85,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         };
     }
 
-    public async mergePullRequest(params: PullRequestParams, options: MergeOption = {}) {
+    public async mergeBitbucketPullRequest(params: PullRequestParams, options: MergeOption = {}): Promise<any> {
         const {project, repository, prId} = params;
         const {message, strategy = 'merge-commit'} = options;
 
@@ -103,7 +103,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         };
     }
 
-    public async declinePullRequest(params: PullRequestParams, message?: string) {
+    public async declineBitbucketPullRequest(params: PullRequestParams, message?: string): Promise<any> {
         const {project, repository, prId} = params;
         const response = await this.api.post(
             `/projects/${project}/repos/${repository}/pull-requests/${prId}/decline`,
@@ -118,7 +118,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         };
     }
 
-    public async addComment(params: PullRequestParams, options: CommentOption) {
+    public async addBitbucketGeneralPullRequestComment(params: PullRequestParams, options: CommentOption): Promise<any> {
         const {project, repository, prId} = params;
         const {text, parentId} = options;
 
@@ -135,7 +135,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         };
     }
 
-    public async getDiff(params: PullRequestParams, contextLines: number = 10) {
+    public async getBitbucketPullRequestDiff(params: PullRequestParams, contextLines: number = 10): Promise<any> {
         const {project, repository, prId} = params;
         const response = await this.api.get(
             `/projects/${project}/repos/${repository}/pull-requests/${prId}/diff`,
@@ -150,7 +150,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         };
     }
 
-    public async getReviews(params: PullRequestParams) {
+    public async getBitbucketPullRequestReviews(params: PullRequestParams): Promise<any> {
         const {project, repository, prId} = params;
         const response = await this.api.get(
             `/projects/${project}/repos/${repository}/pull-requests/${prId}/activities`
@@ -165,31 +165,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         };
     }
 
-    public async getRepo(input: GetRepoInput) {
-        const {workspaceSlug, repoSlug} = input;
-        const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey for Bitbucket Server
-        const apiUrl = `/projects/${projectKey}/repos/${repoSlug}`;
-
-        try {
-            this.logger.info(`Getting repository details for projectKey: ${projectKey}, repoSlug: ${repoSlug}`);
-            const response = await this.api.get(apiUrl);
-            return {
-                content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-            };
-        } catch (error: any) {
-            this.logger.error(`Error getting repository (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data || error.message);
-            if (axios.isAxiosError(error) && error.response) {
-                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
-                throw new McpError(
-                    ErrorCode.InternalError,
-                    `Bitbucket API error while getting repository: ${errorMessage}`
-                );
-            }
-            throw new McpError(ErrorCode.InternalError, `Failed to get repository: ${error.message}`);
-        }
-    }
-
-    public async listRepositories(input: ListRepositoriesInput = {}) {
+    public async listBitbucketRepositories(input: ListRepositoriesInput = {}): Promise<any> {
         const {workspaceSlug, projectKey, query, role} = input;
         let apiUrl = '';
         const params: { name?: string; permission?: string; limit?: number } = {limit: 100}; // Default limit
@@ -228,7 +204,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
     }
 
-    public async listWorkspaces(input: ListWorkspacesInput = {}) {
+    public async listBitbucketWorkspaces(input: ListWorkspacesInput = {}): Promise<any> {
         const {query} = input;
         let apiUrl = '/projects';
         const params: { name?: string, limit?: number } = {limit: 1000}; // Default limit, adjust as needed
@@ -251,11 +227,11 @@ export class BitbucketClientApi implements IBitbucketClient {
                     `Bitbucket API error: ${errorMessage}`
                 );
             }
-                throw new McpError(ErrorCode.InternalError, `Failed to list workspaces: ${error.message}`);
-            } // Closes catch (error: any) for listWorkspaces
-        } // Closes listWorkspaces method
+            throw new McpError(ErrorCode.InternalError, `Failed to list workspaces: ${error.message}`);
+        }
+    }
 
-    public async searchContent(input: SearchContentInput): Promise<any> {
+    public async searchBitbucketContent(input: SearchContentInput): Promise<any> {
         const { query: mainQuery, workspaceSlug, scope, language, extension } = input;
         this.logger.info(`Searching content with input: ${JSON.stringify(input)}`);
 
@@ -317,7 +293,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
     }
 
-    public async bb_list_branches(input: ListBranchesInput) {
+    public async listBitbucketRepositoryBranches(input: ListBranchesInput): Promise<any> {
         const {workspaceSlug, repoSlug, query, sort} = input;
         const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey
         const apiUrl = `/projects/${projectKey}/repos/${repoSlug}/branches`;
@@ -350,7 +326,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
     }
 
-    public async bb_add_pr_comment(input: AddPrCommentInput) {
+    public async addBitbucketPullRequestFileLineComment(input: AddPrCommentInput): Promise<any> {
         const {workspaceSlug, repoSlug, prId, content, parentId, inline} = input;
         const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey
         const apiUrl = `/projects/${projectKey}/repos/${repoSlug}/pull-requests/${prId}/comments`;
@@ -393,7 +369,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
     }
 
-    public async bb_add_branch(input: AddBranchInput) {
+    public async createBitbucketBranch(input: AddBranchInput): Promise<any> {
         const {workspaceSlug, repoSlug, newBranchName, sourceBranchOrCommit} = input;
         const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey
         const apiUrl = `/projects/${projectKey}/repos/${repoSlug}/branches`;
@@ -425,7 +401,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
     }
 
-    public async bb_get_file(input: GetFileInput) {
+    public async getBitbucketFileContent(input: GetFileInput): Promise<any> {
         const {workspaceSlug, repoSlug, filePath, revision} = input;
         const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey
         let apiUrl = `/projects/${projectKey}/repos/${repoSlug}/raw/${filePath.startsWith('/') ? filePath.substring(1) : filePath}`;
@@ -461,7 +437,7 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
     }
 
-    public async bb_get_repo(input: GetRepoInput) {
+    public async getBitbucketRepositoryDetails(input: GetRepoInput): Promise<any> {
         const {workspaceSlug, repoSlug} = input;
         const projectKey = workspaceSlug;
         const apiUrl = `/projects/${projectKey}/repos/${repoSlug}`;
