@@ -15,22 +15,24 @@ import { ListRepositoriesInputSchema, ListRepositoriesInputType } from '../../ap
 import { SearchContentInputSchema, SearchContentInputType } from '../../application/dtos/SearchContentInputSchema.js';
 import {Server} from "@modelcontextprotocol/sdk/server/index.js";
 import {CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError} from "@modelcontextprotocol/sdk/types.js";
-import logger from '../logging/logger.js';
-import {BitbucketClientApi} from "../clients/BitbucketClientApi.js";
+import {IBitbucketClient} from "../../application/ports/IBitbucketClient.js";
 import { IBitbucketUseCase } from '../../application/use-cases/IBitbucketUseCase.js';
-import { BitbucketUseCase } from '../../application/use-cases/impl/BitbucketUseCase.js';
 import axios from "axios";
+import winston from 'winston';
 
 
 
 export class McpServerSetup {
     public readonly server: Server;
-    private readonly api: BitbucketClientApi;
+    private readonly api: IBitbucketClient;
     private readonly bitbucketUseCase: IBitbucketUseCase;
+    private readonly logger: winston.Logger;
+    private readonly toolHandlers: Map<string, (args: any) => Promise<any>>;
 
-    constructor(api: BitbucketClientApi) {
+    constructor(api: IBitbucketClient, bitbucketUseCase: IBitbucketUseCase, logger: winston.Logger) {
         this.api = api;
-        this.bitbucketUseCase = new BitbucketUseCase(api);
+        this.bitbucketUseCase = bitbucketUseCase;
+        this.logger = logger;
         this.server = new Server(
             {
                 name: 'bitbucket-mcp-server',
@@ -44,8 +46,26 @@ export class McpServerSetup {
         );
 
         this.setupToolHandlers();
-        this.server.onerror = (error) => logger.error('[MCP Error]', error);
+        this.server.onerror = (error: any) => this.logger.error('[MCP Error]', error instanceof Error ? error.message : String(error), error instanceof Error ? { stack: error.stack } : {});
+        
+        this.toolHandlers = new Map();
+        this.toolHandlers.set('create_pull_request', async (args: any) => this.bitbucketUseCase.createPullRequest(args as CreatePullRequestInput));
+        this.toolHandlers.set('get_pull_request', async (args: any) => this.bitbucketUseCase.getPullRequest(args as GetPullRequestInput));
+        this.toolHandlers.set('merge_pull_request', async (args: any) => this.bitbucketUseCase.mergePullRequest(args as MergePullRequestInput));
+        this.toolHandlers.set('decline_pull_request', async (args: any) => this.bitbucketUseCase.declinePullRequest(args as DeclinePullRequestInput));
+        this.toolHandlers.set('add_comment', async (args: any) => this.bitbucketUseCase.addComment(args as AddCommentInput));
+        this.toolHandlers.set('get_diff', async (args: any) => this.bitbucketUseCase.getDiff(args as GetDiffInput));
+        this.toolHandlers.set('get_reviews', async (args: any) => this.bitbucketUseCase.getReviews(args as GetPullRequestInput)); // Note: GetPullRequestInput is correct based on original switch
+        this.toolHandlers.set('bb_ls_workspaces', async (args: any) => this.bitbucketUseCase.listWorkspaces(args as ListWorkspacesInputType));
+        this.toolHandlers.set('bb_ls_repos', async (args: any) => this.bitbucketUseCase.listRepositories(args as ListRepositoriesInputType));
+        this.toolHandlers.set('bb_search', async (args: any) => this.bitbucketUseCase.searchContent(args as SearchContentInputType));
+        this.toolHandlers.set('bb_get_repo', async (args: any) => this.bitbucketUseCase.getRepo(args as GetRepoInputType));
+        this.toolHandlers.set('bb_get_file', async (args: any) => this.bitbucketUseCase.getFile(args as GetFileInputType));
+        this.toolHandlers.set('bb_add_branch', async (args: any) => this.bitbucketUseCase.addBranch(args as AddBranchInputType));
+        this.toolHandlers.set('bb_add_pr_comment', async (args: any) => this.bitbucketUseCase.addPullRequestComment(args as AddPrCommentInputType));
+        this.toolHandlers.set('bb_list_branches', async (args: any) => this.bitbucketUseCase.listBranches(args as ListBranchesInputType));
     }
+
 
     private setupToolHandlers() {
         this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
@@ -130,49 +150,20 @@ export class McpServerSetup {
 
         this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
             try {
-                logger.info(`[CallToolRequestSchema] Received tool call. Name: '${request.params.name}'. Args: ${JSON.stringify(request.params.arguments ?? {})}. DefaultProject: '${this.api.config.defaultProject}'`);
+                this.logger.info(`[CallToolRequestSchema] Received tool call. Name: '${request.params.name}'. Args: ${JSON.stringify(request.params.arguments ?? {})}. DefaultProject: '${this.api.getDefaultProjectKey()}'`);
                 const args = request.params.arguments ?? {};
 
-                switch (request.params.name) {
-                    case 'create_pull_request':
-                        return await this.bitbucketUseCase.createPullRequest(args as CreatePullRequestInput);
-                    case 'get_pull_request':
-                        return await this.bitbucketUseCase.getPullRequest(args as GetPullRequestInput);
-                    case 'merge_pull_request':
-                        return await this.bitbucketUseCase.mergePullRequest(args as MergePullRequestInput);
-                    case 'decline_pull_request':
-                        return await this.bitbucketUseCase.declinePullRequest(args as DeclinePullRequestInput);
-                    case 'add_comment':
-                        return await this.bitbucketUseCase.addComment(args as AddCommentInput);
-                    case 'get_diff':
-                        return await this.bitbucketUseCase.getDiff(args as GetDiffInput);
-                    case 'get_reviews':
-                        return await this.bitbucketUseCase.getReviews(args as GetPullRequestInput);
-                    case 'bb_ls_workspaces':
-                        return await this.bitbucketUseCase.listWorkspaces(args as ListWorkspacesInputType);
-                    case 'bb_ls_repos':
-                        return await this.bitbucketUseCase.listRepositories(args as ListRepositoriesInputType);
-                    case 'bb_search':
-                        return await this.bitbucketUseCase.searchContent(args as SearchContentInputType);
-                    case 'bb_get_repo':
-                        return await this.bitbucketUseCase.getRepo(args as GetRepoInputType);
-                    case 'bb_get_file':
-                        return await this.bitbucketUseCase.getFile(args as GetFileInputType);
-                    case 'bb_add_branch':
-                        return await this.bitbucketUseCase.addBranch(args as AddBranchInputType);
-                    case 'bb_add_pr_comment':
-                        return await this.bitbucketUseCase.addPullRequestComment(args as AddPrCommentInputType);
-                    case 'bb_list_branches':
-                        return await this.bitbucketUseCase.listBranches(args as ListBranchesInputType);
-                    default: {
-                        throw new McpError(
-                            ErrorCode.MethodNotFound,
-                            `Unknown tool: ${request.params.name}`
-                        );
-                    }
+                const handler = this.toolHandlers.get(request.params.name);
+                if (handler) {
+                    return await handler(args);
+                } else {
+                    throw new McpError(
+                        ErrorCode.MethodNotFound,
+                        `Unknown tool: ${request.params.name}`
+                    );
                 }
             } catch (error) {
-                logger.error('Tool execution error', {error});
+                this.logger.error('Tool execution error', {error});
                 if (axios.isAxiosError(error)) {
                     throw new McpError(
                         ErrorCode.InternalError,

@@ -13,29 +13,25 @@ import {AddPrCommentInput} from "../input/AddPrCommentInput";
 import {AddBranchInput} from "../input/AddBranchInput";
 import {GetFileInput} from "../input/GetFileInput";
 import {GetRepoInput} from "../input/GetRepoInput";
-import logger from '../logging/logger.js';
 import {ErrorCode, McpError} from "@modelcontextprotocol/sdk/types.js";
 import {IBitbucketClient} from '../../application/ports/IBitbucketClient.js';
+import winston from 'winston';
 
 export class BitbucketClientApi implements IBitbucketClient {
     private readonly api: AxiosInstance;
+    private readonly logger: winston.Logger;
     readonly config: BitbucketConfig;
 
-    constructor() {
-        this.config = {
-            baseUrl: process.env.BITBUCKET_URL ?? '',
-            token: process.env.BITBUCKET_TOKEN,
-            username: process.env.BITBUCKET_USERNAME,
-            password: process.env.BITBUCKET_PASSWORD,
-            defaultProject: process.env.BITBUCKET_DEFAULT_PROJECT
-        };
+    constructor(config: BitbucketConfig, logger: winston.Logger) {
+        this.config = config;
+        this.logger = logger;
 
         if (!this.config.baseUrl) {
-            throw new Error('BITBUCKET_URL is required');
+            throw new Error('BITBUCKET_URL in BitbucketConfig is required');
         }
 
         if (!this.config.token && !(this.config.username && this.config.password)) {
-            throw new Error('Either BITBUCKET_TOKEN or BITBUCKET_USERNAME/PASSWORD is required');
+            throw new Error('Either BITBUCKET_TOKEN or BITBUCKET_USERNAME/PASSWORD in BitbucketConfig is required');
         }
 
         this.api = axios.create({
@@ -175,13 +171,13 @@ export class BitbucketClientApi implements IBitbucketClient {
         const apiUrl = `/projects/${projectKey}/repos/${repoSlug}`;
 
         try {
-            logger.info(`Getting repository details for projectKey: ${projectKey}, repoSlug: ${repoSlug}`);
+            this.logger.info(`Getting repository details for projectKey: ${projectKey}, repoSlug: ${repoSlug}`);
             const response = await this.api.get(apiUrl);
             return {
                 content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
             };
         } catch (error: any) {
-            logger.error(`Error getting repository (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data || error.message);
+            this.logger.error(`Error getting repository (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(
@@ -214,13 +210,13 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
 
         try {
-            logger.info(`Listing repositories with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
+            this.logger.info(`Listing repositories with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
             const response = await this.api.get(apiUrl, {params});
             return {
                 content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
             };
         } catch (error: any) {
-            logger.error(`Error listing repositories (projectKey: ${effectiveProjectKey}, query: ${query}, role: ${role}):`, error.response?.data || error.message);
+            this.logger.error(`Error listing repositories (projectKey: ${effectiveProjectKey}, query: ${query}, role: ${role}):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(
@@ -247,7 +243,7 @@ export class BitbucketClientApi implements IBitbucketClient {
                 content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
             };
         } catch (error: any) {
-            logger.error(`Error listing workspaces (query: ${query}):`, error.response?.data || error.message);
+            this.logger.error(`Error listing workspaces (query: ${query}):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(
@@ -261,10 +257,10 @@ export class BitbucketClientApi implements IBitbucketClient {
 
     public async searchContent(input: SearchContentInput): Promise<any> {
         const { query: mainQuery, workspaceSlug, scope, language, extension } = input;
-        logger.info(`Searching content with input: ${JSON.stringify(input)}`);
+        this.logger.info(`Searching content with input: ${JSON.stringify(input)}`);
 
         if (language) {
-            logger.warn(`The 'language' parameter ('${language}') is currently not used for structured search filtering in the Bitbucket Server API. It will be treated as part of the general query term if included in the 'query' field.`);
+            this.logger.warn(`The 'language' parameter ('${language}') is currently not used for structured search filtering in the Bitbucket Server API. It will be treated as part of the general query term if included in the 'query' field.`);
         }
 
         let searchQueryParts: string[] = [];
@@ -299,13 +295,13 @@ export class BitbucketClientApi implements IBitbucketClient {
         };
 
         try {
-            logger.info(`Searching content via Bitbucket Search API. URL: ${searchApiUrl}, Body: ${JSON.stringify(requestBody)}`);
+            this.logger.info(`Searching content via Bitbucket Search API. URL: ${searchApiUrl}, Body: ${JSON.stringify(requestBody)}`);
             const response = await this.api.post(searchApiUrl, requestBody);
             return {
                 content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
             };
         } catch (error: any) {
-            logger.error(`Error searching content via Bitbucket Search API (constructed query: '${finalQuery}'):`, error.response?.data || error.message);
+            this.logger.error(`Error searching content via Bitbucket Search API (constructed query: '${finalQuery}'):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage =
                     error.response.data?.errors?.[0]?.message || // Bitbucket Server error structure
@@ -336,13 +332,13 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
 
         try {
-            logger.info(`Listing branches with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
+            this.logger.info(`Listing branches with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
             const response = await this.api.get(apiUrl, {params});
             return {
                 content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
             };
         } catch (error: any) {
-            logger.error(`Error listing branches (projectKey: ${projectKey}, repoSlug: ${repoSlug}, query: ${query}, sort: ${sort}):`, error.response?.data || error.message);
+            this.logger.error(`Error listing branches (projectKey: ${projectKey}, repoSlug: ${repoSlug}, query: ${query}, sort: ${sort}):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(
@@ -379,13 +375,13 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
 
         try {
-            logger.info(`Adding PR comment with apiUrl: ${apiUrl}, body: ${JSON.stringify(requestBody)}`);
+            this.logger.info(`Adding PR comment with apiUrl: ${apiUrl}, body: ${JSON.stringify(requestBody)}`);
             const response = await this.api.post(apiUrl, requestBody);
             return {
                 content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
             };
         } catch (error: any) {
-            logger.error(`Error adding PR comment (projectKey: ${projectKey}, repoSlug: ${repoSlug}, prId: ${prId}):`, error.response?.data || error.message);
+            this.logger.error(`Error adding PR comment (projectKey: ${projectKey}, repoSlug: ${repoSlug}, prId: ${prId}):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(
@@ -411,13 +407,13 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
 
         try {
-            logger.info(`Creating branch with apiUrl: ${apiUrl}, body: ${JSON.stringify(requestBody)}`);
+            this.logger.info(`Creating branch with apiUrl: ${apiUrl}, body: ${JSON.stringify(requestBody)}`);
             const response = await this.api.post(apiUrl, requestBody);
             return {
                 content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
             };
         } catch (error: any) {
-            logger.error(`Error creating branch (projectKey: ${projectKey}, repoSlug: ${repoSlug}, newBranchName: ${newBranchName}, source: ${sourceBranchOrCommit}):`, error.response?.data || error.message);
+            this.logger.error(`Error creating branch (projectKey: ${projectKey}, repoSlug: ${repoSlug}, newBranchName: ${newBranchName}, source: ${sourceBranchOrCommit}):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(
@@ -440,13 +436,13 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
 
         try {
-            logger.info(`Getting file content with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
+            this.logger.info(`Getting file content with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
             const response = await this.api.get(apiUrl, {params, responseType: 'text'});
             return {
                 content: [{type: 'text', text: response.data}] // response.data should be the raw file content as string
             };
         } catch (error: any) {
-            logger.error(`Error getting file content (projectKey: ${projectKey}, repoSlug: ${repoSlug}, filePath: ${filePath}, revision: ${revision}):`, error.response?.data || error.message);
+            this.logger.error(`Error getting file content (projectKey: ${projectKey}, repoSlug: ${repoSlug}, filePath: ${filePath}, revision: ${revision}):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
                 let errorMessage = error.message;
                 if (typeof error.response.data === 'string') {
@@ -471,13 +467,13 @@ export class BitbucketClientApi implements IBitbucketClient {
         const apiUrl = `/projects/${projectKey}/repos/${repoSlug}`;
 
         try {
-            logger.info(`Getting repository details with apiUrl: ${apiUrl}`);
+            this.logger.info(`Getting repository details with apiUrl: ${apiUrl}`);
             const response = await this.api.get(apiUrl);
             return {
                 content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
             };
         } catch (error: any) {
-            logger.error(`Error getting repository (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data || error.message);
+            this.logger.error(`Error getting repository (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(

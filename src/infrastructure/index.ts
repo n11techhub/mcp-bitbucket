@@ -2,6 +2,9 @@ import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
 import logger from './logging/logger.js';
 import {McpServerSetup} from "./setup/McpServerSetup.js";
 import {BitbucketClientApi} from "./clients/BitbucketClientApi.js";
+import {BitbucketConfig} from "./config/BitbucketConfig.js";
+import { IBitbucketUseCase } from '../application/use-cases/IBitbucketUseCase.js';
+import { BitbucketUseCase } from '../application/use-cases/impl/BitbucketUseCase.js';
 
 
 class BitbucketServer {
@@ -19,7 +22,18 @@ class BitbucketServer {
     }
 }
 
-const server = new BitbucketServer(new McpServerSetup(new BitbucketClientApi()));
+const bitbucketConfig: BitbucketConfig = {
+    baseUrl: process.env.BITBUCKET_URL ?? '',
+    token: process.env.BITBUCKET_TOKEN,
+    username: process.env.BITBUCKET_USERNAME,
+    password: process.env.BITBUCKET_PASSWORD,
+    defaultProject: process.env.BITBUCKET_DEFAULT_PROJECT
+};
+
+const bitbucketClientApi = new BitbucketClientApi(bitbucketConfig, logger);
+const bitbucketUseCase: IBitbucketUseCase = new BitbucketUseCase(bitbucketClientApi);
+
+const server = new BitbucketServer(new McpServerSetup(bitbucketClientApi, bitbucketUseCase, logger));
 server.run().catch((error) => {
     logger.error('Server error', error);
     process.exit(1);
