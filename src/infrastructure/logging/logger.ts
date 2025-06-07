@@ -66,7 +66,10 @@ if (!fs.existsSync(logDir)) {
   }
 }
 
-const logger = winston.createLogger({
+let logger: winston.Logger;
+
+try {
+  logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: combine(
     timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
@@ -116,6 +119,23 @@ const logger = winston.createLogger({
     })
   ]
 });
+} catch (error: any) {
+  console.error('[Logger] CRITICAL ERROR DURING WINSTON FILE LOGGER INITIALIZATION:', error.message, error.stack);
+  // Fallback to a console-only logger if file logging setup fails
+  logger = winston.createLogger({
+    level: 'debug',
+    format: combine(
+      colorize(),
+      timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+      printf(({ level, message, timestamp: ts, service, stack }) => {
+        return `${ts} [${service || 'fallback-logger'}] ${level}: ${stack || message}`;
+      })
+    ),
+    transports: [new winston.transports.Console()],
+    defaultMeta: { service: 'mcp-bitbucket-n11-fallback' },
+  });
+  logger.error('[Logger] Winston file logging failed to initialize. Falling back to console-only logging.');
+}
 
 // Configure console transport based on environment
 if (process.env.NODE_ENV !== 'production') {

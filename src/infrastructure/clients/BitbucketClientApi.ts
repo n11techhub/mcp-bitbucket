@@ -15,9 +15,8 @@ import {GetFileInput} from "../input/GetFileInput";
 import {GetRepoInput} from "../input/GetRepoInput";
 import logger from '../logging/logger.js';
 import {ErrorCode, McpError} from "@modelcontextprotocol/sdk/types.js";
-import { IBitbucketClient } from '../../application/ports/IBitbucketClient.js';
-
-
+import {IBitbucketClient} from '../../application/ports/IBitbucketClient.js';
+import {URL} from 'url';
 
 export class BitbucketClientApi implements IBitbucketClient {
     private readonly api: AxiosInstance;
@@ -172,7 +171,7 @@ export class BitbucketClientApi implements IBitbucketClient {
     }
 
     public async getRepo(input: GetRepoInput) {
-        const { workspaceSlug, repoSlug } = input;
+        const {workspaceSlug, repoSlug} = input;
         const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey for Bitbucket Server
         const apiUrl = `/projects/${projectKey}/repos/${repoSlug}`;
 
@@ -180,7 +179,7 @@ export class BitbucketClientApi implements IBitbucketClient {
             logger.info(`Getting repository details for projectKey: ${projectKey}, repoSlug: ${repoSlug}`);
             const response = await this.api.get(apiUrl);
             return {
-                content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+                content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
             };
         } catch (error: any) {
             logger.error(`Error getting repository (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data || error.message);
@@ -261,46 +260,54 @@ export class BitbucketClientApi implements IBitbucketClient {
         }
     }
 
-    public async searchContent(input: SearchContentInput) {
-        const {workspaceSlug, query, scope, language, extension} = input;
-        const apiUrl = '/rest/search/latest/search';
-        const params: any = {
-            type: ['CODE', 'PULLREQUEST'], // Default search types
-            projectKey: workspaceSlug,
-            limit: 25, // Default limit for search results
+    public async searchContent(input: SearchContentInput): Promise<any> {
+        const {query, workspaceSlug, scope, language, extension} = input;
+        logger.info(`Original search input: ${JSON.stringify(input)}`);
+        logger.warn(`Elasticsearch Migration: Ignoring workspaceSlug ('${workspaceSlug}'), scope ('${scope}'), language ('${language}'), extension ('${extension}') for initial ES query.`);
+
+        let esHost = '';
+        try {
+            // Ensure URL is imported or handle potential ReferenceError if not globally available or imported.
+            // For Node.js, it might require: import { URL } from 'url';
+            const bitbucketUrl = new URL(this.api.defaults.baseURL || '');
+            esHost = bitbucketUrl.hostname;
+        } catch (e: any) {
+            logger.error('Failed to parse Bitbucket base URL to determine Elasticsearch host:', e.message);
+            throw new McpError(ErrorCode.InternalError, 'Bitbucket base URL is not configured or is invalid.');
+        }
+
+        const esPort = 9200; // Default Elasticsearch port
+        // Construct the Elasticsearch URL. Ensure esHost is valid.
+        const esApiUrl = `http://${esHost}:${esPort}/bitbucket-search-v1/_search`;
+
+        const esParams: any = {
+            q: query,
+            size: 25, // Default limit for search results
         };
 
-        let searchQuery = query;
-        if (language) {
-            searchQuery += ` lang:${language}`;
-        }
-        if (extension) {
-            searchQuery += ` ext:${extension}`;
-        }
-        params.q = searchQuery;
-
-        if (scope) {
-            params.repositoryKey = scope;
-        }
-
         try {
-            logger.info(`Searching content with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
-            const response = await this.api.get(apiUrl, {params});
+            logger.info(`Searching content via Elasticsearch. URL: ${esApiUrl}, Params: ${JSON.stringify(esParams)}`);
+            // Note: this.api is configured for Bitbucket. Direct ES calls might need different auth/headers.
+            // If Bitbucket Bearer token is sent to ES, it might be rejected.
+            // Consider using a generic axios.get() or a dedicated ES client if auth issues arise.
+            const response = await axios.get(esApiUrl, {params: esParams}); // Using global axios for potentially unauthenticated ES
             return {
                 content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
             };
         } catch (error: any) {
-            logger.error(`Error searching content (workspaceSlug: ${workspaceSlug}, query: ${params.q}, scope: ${scope}):`, error.response?.data || error.message);
+            logger.error(`Error searching content via Elasticsearch (query: ${query}):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
-                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
+                const errorMessage = error.response.data?.error?.reason || error.response.data?.message || JSON.stringify(error.response.data) || error.message;
                 throw new McpError(
                     ErrorCode.InternalError,
-                    `Bitbucket API error during search: ${errorMessage}`
+                    `Elasticsearch API error during search: ${errorMessage} (Status: ${error.response.status})`
                 );
             }
-            throw new McpError(ErrorCode.InternalError, `Failed to search content: ${error.message}`);
+            throw new McpError(ErrorCode.InternalError, `Failed to search content via Elasticsearch: ${error.message}`);
         }
     }
+
+    // Jumbled code from previous incorrect edit was here and has been removed.
 
     public async bb_list_branches(input: ListBranchesInput) {
         const {workspaceSlug, repoSlug, query, sort} = input;
