@@ -16,7 +16,6 @@ import {GetRepoInput} from "../input/GetRepoInput";
 import logger from '../logging/logger.js';
 import {ErrorCode, McpError} from "@modelcontextprotocol/sdk/types.js";
 import {IBitbucketClient} from '../../application/ports/IBitbucketClient.js';
-import {URL} from 'url';
 
 export class BitbucketClientApi implements IBitbucketClient {
     private readonly api: AxiosInstance;
@@ -256,58 +255,71 @@ export class BitbucketClientApi implements IBitbucketClient {
                     `Bitbucket API error: ${errorMessage}`
                 );
             }
-            throw new McpError(ErrorCode.InternalError, `Failed to list workspaces: ${error.message}`);
-        }
-    }
+                throw new McpError(ErrorCode.InternalError, `Failed to list workspaces: ${error.message}`);
+            } // Closes catch (error: any) for listWorkspaces
+        } // Closes listWorkspaces method
 
     public async searchContent(input: SearchContentInput): Promise<any> {
-        const {query, workspaceSlug, scope, language, extension} = input;
-        logger.info(`Original search input: ${JSON.stringify(input)}`);
-        logger.warn(`Elasticsearch Migration: Ignoring workspaceSlug ('${workspaceSlug}'), scope ('${scope}'), language ('${language}'), extension ('${extension}') for initial ES query.`);
+        const { query: mainQuery, workspaceSlug, scope, language, extension } = input;
+        logger.info(`Searching content with input: ${JSON.stringify(input)}`);
 
-        let esHost = '';
-        try {
-            // Ensure URL is imported or handle potential ReferenceError if not globally available or imported.
-            // For Node.js, it might require: import { URL } from 'url';
-            const bitbucketUrl = new URL(this.api.defaults.baseURL || '');
-            esHost = bitbucketUrl.hostname;
-        } catch (e: any) {
-            logger.error('Failed to parse Bitbucket base URL to determine Elasticsearch host:', e.message);
-            throw new McpError(ErrorCode.InternalError, 'Bitbucket base URL is not configured or is invalid.');
+        if (language) {
+            logger.warn(`The 'language' parameter ('${language}') is currently not used for structured search filtering in the Bitbucket Server API. It will be treated as part of the general query term if included in the 'query' field.`);
         }
 
-        const esPort = 9200; // Default Elasticsearch port
-        // Construct the Elasticsearch URL. Ensure esHost is valid.
-        const esApiUrl = `http://${esHost}:${esPort}/bitbucket-search-v1/_search`;
+        let searchQueryParts: string[] = [];
+        if (mainQuery) {
+            searchQueryParts.push(mainQuery);
+        }
+        if (extension) {
+            searchQueryParts.push(`ext:${extension}`);
+        }
 
-        const esParams: any = {
-            q: query,
-            size: 25, // Default limit for search results
+        let finalQuery = searchQueryParts.join(' ');
+
+        // Scoping: Prepend project and repo scopes if provided
+        // Note: Order matters for Bitbucket search, typically scopes come first.
+        if (scope) { // repoSlug
+            finalQuery = `repo:${scope} ${finalQuery}`.trim();
+        }
+        if (workspaceSlug) { // projectKey
+            finalQuery = `proj:${workspaceSlug} ${finalQuery}`.trim();
+        }
+
+        const searchApiUrl = `${this.config.baseUrl}/rest/search/latest/search`;
+
+        const requestBody = {
+            query: finalQuery.trim(),
+            entities: {
+                code: {
+                    start: 1, // Page number, 1-indexed as per user's info
+                    limit: 25 // Default number of results per page
+                }
+            }
         };
 
         try {
-            logger.info(`Searching content via Elasticsearch. URL: ${esApiUrl}, Params: ${JSON.stringify(esParams)}`);
-            // Note: this.api is configured for Bitbucket. Direct ES calls might need different auth/headers.
-            // If Bitbucket Bearer token is sent to ES, it might be rejected.
-            // Consider using a generic axios.get() or a dedicated ES client if auth issues arise.
-            const response = await axios.get(esApiUrl, {params: esParams}); // Using global axios for potentially unauthenticated ES
+            logger.info(`Searching content via Bitbucket Search API. URL: ${searchApiUrl}, Body: ${JSON.stringify(requestBody)}`);
+            const response = await this.api.post(searchApiUrl, requestBody);
             return {
-                content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
+                content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
             };
         } catch (error: any) {
-            logger.error(`Error searching content via Elasticsearch (query: ${query}):`, error.response?.data || error.message);
+            logger.error(`Error searching content via Bitbucket Search API (constructed query: '${finalQuery}'):`, error.response?.data || error.message);
             if (axios.isAxiosError(error) && error.response) {
-                const errorMessage = error.response.data?.error?.reason || error.response.data?.message || JSON.stringify(error.response.data) || error.message;
+                const errorMessage =
+                    error.response.data?.errors?.[0]?.message || // Bitbucket Server error structure
+                    error.response.data?.message ||
+                    (typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)) ||
+                    error.message;
                 throw new McpError(
                     ErrorCode.InternalError,
-                    `Elasticsearch API error during search: ${errorMessage} (Status: ${error.response.status})`
+                    `Bitbucket Search API error: ${errorMessage} (Status: ${error.response.status})`
                 );
             }
-            throw new McpError(ErrorCode.InternalError, `Failed to search content via Elasticsearch: ${error.message}`);
+            throw new McpError(ErrorCode.InternalError, `Failed to search content via Bitbucket Search API: ${error.message}`);
         }
     }
-
-    // Jumbled code from previous incorrect edit was here and has been removed.
 
     public async bb_list_branches(input: ListBranchesInput) {
         const {workspaceSlug, repoSlug, query, sort} = input;
