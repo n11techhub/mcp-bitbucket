@@ -20,8 +20,6 @@ import { IBitbucketUseCase } from '../../application/use-cases/IBitbucketUseCase
 import axios from "axios";
 import winston from 'winston';
 
-
-
 export class McpServerSetup {
     public readonly server: Server;
     private readonly api: IBitbucketClient;
@@ -65,7 +63,6 @@ export class McpServerSetup {
         this.toolHandlers.set('bitbucket_add_pull_request_file_line_comment', async (args: any) => this.bitbucketUseCase.bitbucketAddPullRequestFileLineComment(args as AddPrCommentInputType));
         this.toolHandlers.set('bitbucket_list_repository_branches', async (args: any) => this.bitbucketUseCase.bitbucketListRepositoryBranches(args as ListBranchesInputType));
     }
-
 
     private setupToolHandlers() {
         this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
