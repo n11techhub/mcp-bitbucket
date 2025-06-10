@@ -15,6 +15,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.1.1",
     "axios": "1.8.2",
+    "express": "^5.1.0",
     "inversify": "^7.5.2",
     "reflect-metadata": "^0.2.2",
     "winston": "^3.11.0",
@@ -22,6 +23,7 @@
     "zod-to-json-schema": "^3.24.5"
   },
   "devDependencies": {
+    "@types/express": "^5.0.3",
     "@types/jest": "^29.5.11",
     "@types/node": "^22.10.7",
     "@typescript-eslint/eslint-plugin": "^6.19.0",

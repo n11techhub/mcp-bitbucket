@@ -1,28 +1,29 @@
-import "reflect-metadata";
+import 'reflect-metadata';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import logger from './logging/logger.js';
-import { McpServerSetup } from "./setup/McpServerSetup.js";
+import winston from 'winston';
 import { container } from './inversify.config.js';
+import { McpServerSetup } from './setup/McpServerSetup.js';
+import { SseService } from './sse/SseService.js';
 import { TYPES } from './types.js';
 
-class BitbucketServer {
-    private readonly mcpServer : McpServerSetup;
+async function main() {
+    const logger = container.get<winston.Logger>(TYPES.Logger);
+    try {
+        const mcpServerSetup = container.get<McpServerSetup>(TYPES.McpServerSetup);
+        const sseService = container.get<SseService>(TYPES.SseService);
 
-    constructor(mcpServer: McpServerSetup) {
-        this.mcpServer = mcpServer;
-    }
+        // Start the SSE server for HTTP communication
+        sseService.start();
 
-    async run() {
+        // Start the MCP server for stdio communication
         const transport = new StdioServerTransport();
-        await this.mcpServer.server.connect(transport);
+        await mcpServerSetup.server.connect(transport);
         logger.info('Bitbucket MCP server running on stdio');
+
+    } catch (error: any) {
+        logger.error('Application startup error', { message: error.message, stack: error.stack });
+        process.exit(1);
     }
 }
 
-
-const mcpServerInstance = container.get<McpServerSetup>(TYPES.McpServerSetup);
-const server = new BitbucketServer(mcpServerInstance);
-server.run().catch((error) => {
-    logger.error('Server error', error);
-    process.exit(1);
-});
+main();
