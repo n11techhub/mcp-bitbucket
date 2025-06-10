@@ -15,7 +15,7 @@ import { ListRepositoriesInputSchema, ListRepositoriesInputType } from '../../ap
 import { SearchContentInputSchema, SearchContentInputType } from '../../application/dtos/SearchContentInputSchema.js';
 import {Server} from "@modelcontextprotocol/sdk/server/index.js";
 import {CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError} from "@modelcontextprotocol/sdk/types.js";
-import {IBitbucketClient} from "../../application/ports/IBitbucketClient.js";
+import {IBitbucketClientFacade} from "../../application/facade/IBitbucketClientFacade.js";
 import { IBitbucketUseCase } from '../../application/use-cases/IBitbucketUseCase.js';
 import axios from "axios";
 import winston from 'winston';
@@ -25,13 +25,13 @@ import { TYPES } from '../types.js';
 @injectable()
 export class McpServerSetup {
     public readonly server: Server;
-    private readonly api: IBitbucketClient;
+    private readonly api: IBitbucketClientFacade;
     private readonly bitbucketUseCase: IBitbucketUseCase;
     private readonly logger: winston.Logger;
     private readonly toolHandlers: Map<string, (args: any) => Promise<any>>;
 
     constructor(
-        @inject(TYPES.IBitbucketClient) api: IBitbucketClient, 
+        @inject(TYPES.IBitbucketClient) api: IBitbucketClientFacade,
         @inject(TYPES.IBitbucketUseCase) bitbucketUseCase: IBitbucketUseCase, 
         @inject(TYPES.Logger) logger: winston.Logger
     ) {

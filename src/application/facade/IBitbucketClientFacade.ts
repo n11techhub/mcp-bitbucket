@@ -1,8 +1,7 @@
-// src/application/ports/IBitbucketClient.ts
-import * as dtos from '../dtos/index.js';
-import { PullRequestParams } from '../../infrastructure/input/PullRequestParams.js'; // This might need to be moved or redefined if it's purely an infra concern
+import * as dtos from '../dtos';
+import { PullRequestParams } from '../../infrastructure/input/PullRequestParams.js';
 
-export interface IBitbucketClient {
+export interface IBitbucketClientFacade {
     createBitbucketPullRequest(input: dtos.CreatePullRequestInput): Promise<any>;
     getBitbucketPullRequestDetails(input: dtos.GetPullRequestInput): Promise<any>;
     mergeBitbucketPullRequest(prParams: PullRequestParams, mergeOptions: dtos.MergeOptionType): Promise<any>;

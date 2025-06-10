@@ -5,7 +5,6 @@ import { injectable, inject } from 'inversify';
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import winston from 'winston';
 import { IWorkspaceClient } from '../../application/ports/IWorkspaceClient.js';
-// BitbucketConfig is already imported at the top of the file
 import { TYPES } from '../types.js';
 
 @injectable()

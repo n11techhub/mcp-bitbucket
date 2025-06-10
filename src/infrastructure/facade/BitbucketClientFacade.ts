@@ -12,16 +12,15 @@ import { AddPrCommentInput } from "../input/AddPrCommentInput.js";
 import { AddBranchInput } from "../input/AddBranchInput.js";
 import { GetFileInput } from "../input/GetFileInput.js";
 import { GetRepoInput } from "../input/GetRepoInput.js";
-import { IBitbucketClient } from '../../application/ports/IBitbucketClient.js';
+import { IBitbucketClientFacade } from '../../application/facade/IBitbucketClientFacade.js';
 import { IPullRequestClient } from '../../application/ports/IPullRequestClient.js';
 import { IRepositoryClient } from '../../application/ports/IRepositoryClient.js';
 import { IWorkspaceClient } from '../../application/ports/IWorkspaceClient.js';
 import { ISearchClient } from '../../application/ports/ISearchClient.js';
-// BitbucketConfig is already imported at the top of the file
 import { TYPES } from '../types.js';
 
 @injectable()
-export class BitbucketClientApi implements IBitbucketClient {
+export class BitbucketClientFacade implements IBitbucketClientFacade {
     private readonly pullRequestClient: IPullRequestClient;
     private readonly repositoryClient: IRepositoryClient;
     private readonly workspaceClient: IWorkspaceClient;

@@ -5,8 +5,8 @@ import logger from './logging/logger.js';
 import winston from 'winston';
 
 // Clients
-import { IBitbucketClient } from '../application/ports/IBitbucketClient.js';
-import { BitbucketClientApi } from './clients/BitbucketClientApi.js';
+import { IBitbucketClientFacade } from '../application/facade/IBitbucketClientFacade.js';
+import { BitbucketClientFacade } from './facade/BitbucketClientFacade.js';
 import { IPullRequestClient } from '../application/ports/IPullRequestClient.js';
 import { PullRequestClient } from './clients/PullRequestClient.js';
 import { IRepositoryClient } from '../application/ports/IRepositoryClient.js';
@@ -43,7 +43,7 @@ container.bind<IPullRequestClient>(TYPES.IPullRequestClient).to(PullRequestClien
 container.bind<IRepositoryClient>(TYPES.IRepositoryClient).to(RepositoryClient).inSingletonScope();
 container.bind<IWorkspaceClient>(TYPES.IWorkspaceClient).to(WorkspaceClient).inSingletonScope();
 container.bind<ISearchClient>(TYPES.ISearchClient).to(SearchClient).inSingletonScope();
-container.bind<IBitbucketClient>(TYPES.IBitbucketClient).to(BitbucketClientApi).inSingletonScope();
+container.bind<IBitbucketClientFacade>(TYPES.IBitbucketClient).to(BitbucketClientFacade).inSingletonScope();
 
 // Use Cases
 container.bind<IBitbucketUseCase>(TYPES.IBitbucketUseCase).to(BitbucketUseCase).inSingletonScope();

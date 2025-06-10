@@ -1,5 +1,5 @@
 import { IBitbucketUseCase } from '../IBitbucketUseCase.js';
-import { IBitbucketClient } from '../../ports/IBitbucketClient.js';
+import { IBitbucketClientFacade } from '../../facade/IBitbucketClientFacade.js';
 import * as dtos from '../../dtos/index.js';
 import { PullRequestParams } from '../../../infrastructure/input/PullRequestParams.js'; // Still referencing infra type
 import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js'; // For error handling
@@ -8,9 +8,9 @@ import { TYPES } from '../../../infrastructure/types.js';
 
 @injectable()
 export class BitbucketUseCase implements IBitbucketUseCase {
-    private readonly bitbucketClient: IBitbucketClient;
+    private readonly bitbucketClient: IBitbucketClientFacade;
 
-    constructor(@inject(TYPES.IBitbucketClient) bitbucketClient: IBitbucketClient) {
+    constructor(@inject(TYPES.IBitbucketClient) bitbucketClient: IBitbucketClientFacade) {
         this.bitbucketClient = bitbucketClient;
     }
 

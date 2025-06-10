@@ -6,7 +6,7 @@ const TYPES = {
     Logger: Symbol.for("Logger"),
 
     // Bitbucket Clients
-    IBitbucketClient: Symbol.for("IBitbucketClient"),
+    IBitbucketClient: Symbol.for("IBitbucketClientFacade"),
     IPullRequestClient: Symbol.for("IPullRequestClient"),
     IRepositoryClient: Symbol.for("IRepositoryClient"),
     IWorkspaceClient: Symbol.for("IWorkspaceClient"),

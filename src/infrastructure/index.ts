@@ -2,8 +2,8 @@ import "reflect-metadata";
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import logger from './logging/logger.js';
 import { McpServerSetup } from "./setup/McpServerSetup.js";
-import { container } from './inversify.config.js'; // Added import for container
-import { TYPES } from './types.js'; // Added import for TYPES
+import { container } from './inversify.config.js';
+import { TYPES } from './types.js';
 
 class BitbucketServer {
     private readonly mcpServer : McpServerSetup;
@@ -19,7 +19,7 @@ class BitbucketServer {
     }
 }
 
-// Resolve the main application setup from the Inversify container
+
 const mcpServerInstance = container.get<McpServerSetup>(TYPES.McpServerSetup);
 const server = new BitbucketServer(mcpServerInstance);
 server.run().catch((error) => {

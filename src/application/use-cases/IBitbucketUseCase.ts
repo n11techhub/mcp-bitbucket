@@ -1,4 +1,3 @@
-// src/application/use-cases/IBitbucketUseCase.ts
 import * as dtos from '../dtos/index.js';
 
 export interface IBitbucketUseCase {
