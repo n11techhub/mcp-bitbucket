@@ -1,464 +1,101 @@
-import axios, {AxiosInstance} from "axios";
-import {BitbucketConfig} from "../config/BitbucketConfig";
-import {PullRequestInput} from "../input/PullRequestInput";
-import {PullRequestParams} from "../input/PullRequestParams";
-import {MergeOption} from "../option/MergeOption";
-import {CommentOption} from "../option/CommentOption";
-import {BitbucketActivity} from "../filter/BitbucketActivity";
-import {ListRepositoriesInput} from "../input/ListRepositoriesInput";
-import {ListWorkspacesInput} from "../input/ListWorkspacesInput";
-import {SearchContentInput} from "../input/SearchContentInput";
-import {ListBranchesInput} from "../input/ListBranchesInput";
-import {AddPrCommentInput} from "../input/AddPrCommentInput";
-import {AddBranchInput} from "../input/AddBranchInput";
-import {GetFileInput} from "../input/GetFileInput";
-import {GetRepoInput} from "../input/GetRepoInput";
-import {ErrorCode, McpError} from "@modelcontextprotocol/sdk/types.js";
-import {IBitbucketClient} from '../../application/ports/IBitbucketClient.js';
-import winston from 'winston';
+import { BitbucketConfig } from "../config/BitbucketConfig";
+import { PullRequestInput } from "../input/PullRequestInput";
+import { PullRequestParams } from "../input/PullRequestParams";
+import { MergeOption } from "../option/MergeOption";
+import { CommentOption } from "../option/CommentOption";
+import { ListRepositoriesInput } from "../input/ListRepositoriesInput";
+import { ListWorkspacesInput } from "../input/ListWorkspacesInput";
+import { SearchContentInput } from "../input/SearchContentInput";
+import { ListBranchesInput } from "../input/ListBranchesInput";
+import { AddPrCommentInput } from "../input/AddPrCommentInput";
+import { AddBranchInput } from "../input/AddBranchInput";
+import { GetFileInput } from "../input/GetFileInput";
+import { GetRepoInput } from "../input/GetRepoInput";
+import { IBitbucketClient } from '../../application/ports/IBitbucketClient.js';
+import { IPullRequestClient } from '../../application/ports/IPullRequestClient';
+import { IRepositoryClient } from '../../application/ports/IRepositoryClient';
+import { IWorkspaceClient } from '../../application/ports/IWorkspaceClient';
+import { ISearchClient } from '../../application/ports/ISearchClient';
 
 export class BitbucketClientApi implements IBitbucketClient {
-    private readonly api: AxiosInstance;
-    private readonly logger: winston.Logger;
+    private readonly pullRequestClient: IPullRequestClient;
+    private readonly repositoryClient: IRepositoryClient;
+    private readonly workspaceClient: IWorkspaceClient;
+    private readonly searchClient: ISearchClient;
     readonly config: BitbucketConfig;
 
-    constructor(config: BitbucketConfig, logger: winston.Logger) {
+    constructor(
+        config: BitbucketConfig,
+        pullRequestClient: IPullRequestClient,
+        repositoryClient: IRepositoryClient,
+        workspaceClient: IWorkspaceClient,
+        searchClient: ISearchClient
+    ) {
         this.config = config;
-        this.logger = logger;
-
-        if (!this.config.baseUrl) {
-            throw new Error('BITBUCKET_URL in BitbucketConfig is required');
-        }
-
-        if (!this.config.token && !(this.config.username && this.config.password)) {
-            throw new Error('Either BITBUCKET_TOKEN or BITBUCKET_USERNAME/PASSWORD in BitbucketConfig is required');
-        }
-
-        this.api = axios.create({
-            baseURL: `${this.config.baseUrl}/rest/api/1.0`,
-            headers: this.config.token
-                ? {Authorization: `Bearer ${this.config.token}`}
-                : {},
-            auth: this.config.username && this.config.password
-                ? {username: this.config.username, password: this.config.password}
-                : undefined,
-        });
+        this.pullRequestClient = pullRequestClient;
+        this.repositoryClient = repositoryClient;
+        this.workspaceClient = workspaceClient;
+        this.searchClient = searchClient;
     }
 
     public async createBitbucketPullRequest(input: PullRequestInput): Promise<any> {
-        const response = await this.api.post(
-            `/projects/${input.project}/repos/${input.repository}/pull-requests`,
-            {
-                title: input.title,
-                description: input.description,
-                fromRef: {
-                    id: `refs/heads/${input.sourceBranch}`,
-                    repository: {
-                        slug: input.repository,
-                        project: {key: input.project}
-                    }
-                },
-                toRef: {
-                    id: `refs/heads/${input.targetBranch}`,
-                    repository: {
-                        slug: input.repository,
-                        project: {key: input.project}
-                    }
-                },
-                reviewers: input.reviewers?.map(username => ({user: {name: username}}))
-            }
-        );
-
-        return {
-            content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-        };
+        return this.pullRequestClient.createBitbucketPullRequest(input);
     }
 
     public async getBitbucketPullRequestDetails(params: PullRequestParams): Promise<any> {
-        const {project, repository, prId} = params;
-        const response = await this.api.get(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}`
-        );
-
-        return {
-            content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-        };
+        return this.pullRequestClient.getBitbucketPullRequestDetails(params);
     }
 
     public async mergeBitbucketPullRequest(params: PullRequestParams, options: MergeOption = {}): Promise<any> {
-        const {project, repository, prId} = params;
-        const {message, strategy = 'merge-commit'} = options;
-
-        const response = await this.api.post(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}/merge`,
-            {
-                version: -1,
-                message,
-                strategy
-            }
-        );
-
-        return {
-            content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-        };
+        return this.pullRequestClient.mergeBitbucketPullRequest(params, options);
     }
 
     public async declineBitbucketPullRequest(params: PullRequestParams, message?: string): Promise<any> {
-        const {project, repository, prId} = params;
-        const response = await this.api.post(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}/decline`,
-            {
-                version: -1,
-                message
-            }
-        );
-
-        return {
-            content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-        };
+        return this.pullRequestClient.declineBitbucketPullRequest(params, message);
     }
 
     public async addBitbucketGeneralPullRequestComment(params: PullRequestParams, options: CommentOption): Promise<any> {
-        const {project, repository, prId} = params;
-        const {text, parentId} = options;
-
-        const response = await this.api.post(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}/comments`,
-            {
-                text,
-                parent: parentId ? {id: parentId} : undefined
-            }
-        );
-
-        return {
-            content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-        };
+        return this.pullRequestClient.addBitbucketGeneralPullRequestComment(params, options);
     }
 
     public async getBitbucketPullRequestDiff(params: PullRequestParams, contextLines: number = 10): Promise<any> {
-        const {project, repository, prId} = params;
-        const response = await this.api.get(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}/diff`,
-            {
-                params: {contextLines},
-                headers: {Accept: 'text/plain'}
-            }
-        );
-
-        return {
-            content: [{type: 'text', text: response.data}]
-        };
+        return this.pullRequestClient.getBitbucketPullRequestDiff(params, contextLines);
     }
 
     public async getBitbucketPullRequestReviews(params: PullRequestParams): Promise<any> {
-        const {project, repository, prId} = params;
-        const response = await this.api.get(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}/activities`
-        );
-
-        const reviews = response.data.values.filter(
-            (activity: BitbucketActivity) => activity.action === 'APPROVED' || activity.action === 'REVIEWED'
-        );
-
-        return {
-            content: [{type: 'text', text: JSON.stringify(reviews, null, 2)}]
-        };
+        return this.pullRequestClient.getBitbucketPullRequestReviews(params);
     }
 
     public async listBitbucketRepositories(input: ListRepositoriesInput = {}): Promise<any> {
-        const {workspaceSlug, projectKey, query, role} = input;
-        let apiUrl = '';
-        const params: { name?: string; permission?: string; limit?: number } = {limit: 100}; // Default limit
-
-        const effectiveProjectKey = projectKey || workspaceSlug;
-
-        if (effectiveProjectKey) {
-            apiUrl = `/projects/${effectiveProjectKey}/repos`;
-        } else {
-            apiUrl = '/repos'; // List repositories across all projects user has access to
-        }
-
-        if (query) {
-            params.name = query;
-        }
-        if (role) {
-            params.permission = role;
-        }
-
-        try {
-            this.logger.info(`Listing repositories with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
-            const response = await this.api.get(apiUrl, {params});
-            return {
-                content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-            };
-        } catch (error: any) {
-            this.logger.error(`Error listing repositories (projectKey: ${effectiveProjectKey}, query: ${query}, role: ${role}):`, error.response?.data || error.message);
-            if (axios.isAxiosError(error) && error.response) {
-                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
-                throw new McpError(
-                    ErrorCode.InternalError,
-                    `Bitbucket API error: ${errorMessage}`
-                );
-            }
-            throw new McpError(ErrorCode.InternalError, `Failed to list repositories: ${error.message}`);
-        }
+        return this.repositoryClient.listBitbucketRepositories(input);
     }
 
     public async listBitbucketWorkspaces(input: ListWorkspacesInput = {}): Promise<any> {
-        const {query} = input;
-        let apiUrl = '/projects';
-        const params: { name?: string, limit?: number } = {limit: 1000}; // Default limit, adjust as needed
-
-        if (query) {
-            params.name = query;
-        }
-
-        try {
-            const response = await this.api.get(apiUrl, {params});
-            return {
-                content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-            };
-        } catch (error: any) {
-            this.logger.error(`Error listing workspaces (query: ${query}):`, error.response?.data || error.message);
-            if (axios.isAxiosError(error) && error.response) {
-                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
-                throw new McpError(
-                    ErrorCode.InternalError,
-                    `Bitbucket API error: ${errorMessage}`
-                );
-            }
-            throw new McpError(ErrorCode.InternalError, `Failed to list workspaces: ${error.message}`);
-        }
+        return this.workspaceClient.listBitbucketWorkspaces(input);
     }
 
     public async searchBitbucketContent(input: SearchContentInput): Promise<any> {
-        const { query: mainQuery, workspaceSlug, scope, language, extension } = input;
-        this.logger.info(`Searching content with input: ${JSON.stringify(input)}`);
-
-        if (language) {
-            this.logger.warn(`The 'language' parameter ('${language}') is currently not used for structured search filtering in the Bitbucket Server API. It will be treated as part of the general query term if included in the 'query' field.`);
-        }
-
-        let searchQueryParts: string[] = [];
-        if (mainQuery) {
-            searchQueryParts.push(mainQuery);
-        }
-        if (extension) {
-            searchQueryParts.push(`ext:${extension}`);
-        }
-
-        let finalQuery = searchQueryParts.join(' ');
-
-        // Scoping: Prepend project and repo scopes if provided
-        // Note: Order matters for Bitbucket search, typically scopes come first.
-        if (scope) { // repoSlug
-            finalQuery = `repo:${scope} ${finalQuery}`.trim();
-        }
-        if (workspaceSlug) { // projectKey
-            finalQuery = `proj:${workspaceSlug} ${finalQuery}`.trim();
-        }
-
-        const searchApiUrl = `${this.config.baseUrl}/rest/search/latest/search`;
-
-        const requestBody = {
-            query: finalQuery.trim(),
-            entities: {
-                code: {
-                    start: 1, // Page number, 1-indexed as per user's info
-                    limit: 25 // Default number of results per page
-                }
-            }
-        };
-
-        try {
-            this.logger.info(`Searching content via Bitbucket Search API. URL: ${searchApiUrl}, Body: ${JSON.stringify(requestBody)}`);
-            const response = await this.api.post(searchApiUrl, requestBody);
-            return {
-                content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-            };
-        } catch (error: any) {
-            this.logger.error(`Error searching content via Bitbucket Search API (constructed query: '${finalQuery}'):`, error.response?.data || error.message);
-            if (axios.isAxiosError(error) && error.response) {
-                const errorMessage =
-                    error.response.data?.errors?.[0]?.message || // Bitbucket Server error structure
-                    error.response.data?.message ||
-                    (typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)) ||
-                    error.message;
-                throw new McpError(
-                    ErrorCode.InternalError,
-                    `Bitbucket Search API error: ${errorMessage} (Status: ${error.response.status})`
-                );
-            }
-            throw new McpError(ErrorCode.InternalError, `Failed to search content via Bitbucket Search API: ${error.message}`);
-        }
+        return this.searchClient.searchBitbucketContent(input);
     }
 
     public async listBitbucketRepositoryBranches(input: ListBranchesInput): Promise<any> {
-        const {workspaceSlug, repoSlug, query, sort} = input;
-        const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey
-        const apiUrl = `/projects/${projectKey}/repos/${repoSlug}/branches`;
-
-        const params: any = {limit: 100}; // Default limit, Bitbucket API is paginated
-
-        if (query) {
-            params.filterText = query;
-        }
-        if (sort) {
-            params.orderBy = sort;
-        }
-
-        try {
-            this.logger.info(`Listing branches with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
-            const response = await this.api.get(apiUrl, {params});
-            return {
-                content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-            };
-        } catch (error: any) {
-            this.logger.error(`Error listing branches (projectKey: ${projectKey}, repoSlug: ${repoSlug}, query: ${query}, sort: ${sort}):`, error.response?.data || error.message);
-            if (axios.isAxiosError(error) && error.response) {
-                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
-                throw new McpError(
-                    ErrorCode.InternalError,
-                    `Bitbucket API error: ${errorMessage}`
-                );
-            }
-            throw new McpError(ErrorCode.InternalError, `Failed to list branches: ${error.message}`);
-        }
+        return this.repositoryClient.listBitbucketRepositoryBranches(input);
     }
 
     public async addBitbucketPullRequestFileLineComment(input: AddPrCommentInput): Promise<any> {
-        const {workspaceSlug, repoSlug, prId, content, parentId, inline} = input;
-        const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey
-        const apiUrl = `/projects/${projectKey}/repos/${repoSlug}/pull-requests/${prId}/comments`;
-
-        const requestBody: any = {text: content};
-
-        if (parentId) {
-            requestBody.parent = {id: parentId};
-        }
-
-        if (inline) {
-            requestBody.anchor = {
-                path: inline.path,
-                line: inline.line,
-            };
-            if (inline.lineType) {
-                requestBody.anchor.lineType = inline.lineType;
-            }
-            if (inline.fileType) {
-                requestBody.anchor.fileType = inline.fileType;
-            }
-        }
-
-        try {
-            this.logger.info(`Adding PR comment with apiUrl: ${apiUrl}, body: ${JSON.stringify(requestBody)}`);
-            const response = await this.api.post(apiUrl, requestBody);
-            return {
-                content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-            };
-        } catch (error: any) {
-            this.logger.error(`Error adding PR comment (projectKey: ${projectKey}, repoSlug: ${repoSlug}, prId: ${prId}):`, error.response?.data || error.message);
-            if (axios.isAxiosError(error) && error.response) {
-                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
-                throw new McpError(
-                    ErrorCode.InternalError,
-                    `Bitbucket API error: ${errorMessage}`
-                );
-            }
-            throw new McpError(ErrorCode.InternalError, `Failed to add PR comment: ${error.message}`);
-        }
+        return this.pullRequestClient.addBitbucketPullRequestFileLineComment(input);
     }
 
     public async createBitbucketBranch(input: AddBranchInput): Promise<any> {
-        const {workspaceSlug, repoSlug, newBranchName, sourceBranchOrCommit} = input;
-        const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey
-        const apiUrl = `/projects/${projectKey}/repos/${repoSlug}/branches`;
-
-        const requestBody: { name: string; startPoint?: string } = {
-            name: newBranchName,
-        };
-
-        if (sourceBranchOrCommit) {
-            requestBody.startPoint = sourceBranchOrCommit;
-        }
-
-        try {
-            this.logger.info(`Creating branch with apiUrl: ${apiUrl}, body: ${JSON.stringify(requestBody)}`);
-            const response = await this.api.post(apiUrl, requestBody);
-            return {
-                content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-            };
-        } catch (error: any) {
-            this.logger.error(`Error creating branch (projectKey: ${projectKey}, repoSlug: ${repoSlug}, newBranchName: ${newBranchName}, source: ${sourceBranchOrCommit}):`, error.response?.data || error.message);
-            if (axios.isAxiosError(error) && error.response) {
-                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
-                throw new McpError(
-                    ErrorCode.InternalError,
-                    `Bitbucket API error: ${errorMessage}`
-                );
-            }
-            throw new McpError(ErrorCode.InternalError, `Failed to create branch: ${error.message}`);
-        }
+        return this.repositoryClient.createBitbucketBranch(input);
     }
 
     public async getBitbucketFileContent(input: GetFileInput): Promise<any> {
-        const {workspaceSlug, repoSlug, filePath, revision} = input;
-        const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey
-        let apiUrl = `/projects/${projectKey}/repos/${repoSlug}/raw/${filePath.startsWith('/') ? filePath.substring(1) : filePath}`;
-
-        const params: any = {};
-        if (revision) {
-            params.at = revision;
-        }
-
-        try {
-            this.logger.info(`Getting file content with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
-            const response = await this.api.get(apiUrl, {params, responseType: 'text'});
-            return {
-                content: [{type: 'text', text: response.data}] // response.data should be the raw file content as string
-            };
-        } catch (error: any) {
-            this.logger.error(`Error getting file content (projectKey: ${projectKey}, repoSlug: ${repoSlug}, filePath: ${filePath}, revision: ${revision}):`, error.response?.data || error.message);
-            if (axios.isAxiosError(error) && error.response) {
-                let errorMessage = error.message;
-                if (typeof error.response.data === 'string') {
-                    errorMessage = error.response.data;
-                } else if (error.response.data?.errors?.[0]?.message) {
-                    errorMessage = error.response.data.errors[0].message;
-                } else if (error.response.data?.message) {
-                    errorMessage = error.response.data.message;
-                }
-                throw new McpError(
-                    ErrorCode.InternalError,
-                    `Bitbucket API error: ${errorMessage}`
-                );
-            }
-            throw new McpError(ErrorCode.InternalError, `Failed to get file content: ${error.message}`);
-        }
+        return this.repositoryClient.getBitbucketFileContent(input);
     }
 
     public async getBitbucketRepositoryDetails(input: GetRepoInput): Promise<any> {
-        const {workspaceSlug, repoSlug} = input;
-        const projectKey = workspaceSlug;
-        const apiUrl = `/projects/${projectKey}/repos/${repoSlug}`;
-
-        try {
-            this.logger.info(`Getting repository details with apiUrl: ${apiUrl}`);
-            const response = await this.api.get(apiUrl);
-            return {
-                content: [{type: 'text', text: JSON.stringify(response.data, null, 2)}]
-            };
-        } catch (error: any) {
-            this.logger.error(`Error getting repository (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data || error.message);
-            if (axios.isAxiosError(error) && error.response) {
-                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
-                throw new McpError(
-                    ErrorCode.InternalError,
-                    `Bitbucket API error: ${errorMessage}`
-                );
-            }
-            throw new McpError(ErrorCode.InternalError, `Failed to get repository: ${error.message}`);
-        }
+        return this.repositoryClient.getBitbucketRepositoryDetails(input);
     }
 
     public getDefaultProjectKey(): string | undefined {
