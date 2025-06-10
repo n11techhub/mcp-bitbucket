@@ -1,15 +1,22 @@
 import axios, { AxiosInstance } from "axios";
-import { BitbucketConfig } from "../config/BitbucketConfig";
-import { ListWorkspacesInput } from "../input/ListWorkspacesInput";
+import { BitbucketConfig } from "../config/BitbucketConfig.js";
+import { ListWorkspacesInput } from "../input/ListWorkspacesInput.js";
+import { injectable, inject } from 'inversify';
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import winston from 'winston';
-import { IWorkspaceClient } from '../../application/ports/IWorkspaceClient';
+import { IWorkspaceClient } from '../../application/ports/IWorkspaceClient.js';
+// BitbucketConfig is already imported at the top of the file
+import { TYPES } from '../types.js';
 
+@injectable()
 export class WorkspaceClient implements IWorkspaceClient {
     private readonly api: AxiosInstance;
     private readonly logger: winston.Logger;
 
-    constructor(config: BitbucketConfig, logger: winston.Logger) {
+    constructor(
+        @inject(TYPES.BitbucketConfig) config: BitbucketConfig, 
+        @inject(TYPES.Logger) logger: winston.Logger
+    ) {
         this.logger = logger;
         this.api = axios.create({
             baseURL: `${config.baseUrl}/rest/api/1.0`,

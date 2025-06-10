@@ -3,11 +3,14 @@ import { IBitbucketClient } from '../../ports/IBitbucketClient.js';
 import * as dtos from '../../dtos/index.js';
 import { PullRequestParams } from '../../../infrastructure/input/PullRequestParams.js'; // Still referencing infra type
 import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js'; // For error handling
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../../../infrastructure/types.js';
 
+@injectable()
 export class BitbucketUseCase implements IBitbucketUseCase {
     private readonly bitbucketClient: IBitbucketClient;
 
-    constructor(bitbucketClient: IBitbucketClient) {
+    constructor(@inject(TYPES.IBitbucketClient) bitbucketClient: IBitbucketClient) {
         this.bitbucketClient = bitbucketClient;
     }
 

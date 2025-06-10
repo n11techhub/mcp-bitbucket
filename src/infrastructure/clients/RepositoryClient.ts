@@ -1,19 +1,26 @@
 import axios, { AxiosInstance } from "axios";
-import { BitbucketConfig } from "../config/BitbucketConfig";
-import { ListRepositoriesInput } from "../input/ListRepositoriesInput";
-import { ListBranchesInput } from "../input/ListBranchesInput";
-import { AddBranchInput } from "../input/AddBranchInput";
-import { GetFileInput } from "../input/GetFileInput";
-import { GetRepoInput } from "../input/GetRepoInput";
+import { BitbucketConfig } from "../config/BitbucketConfig.js";
+import { ListRepositoriesInput } from "../input/ListRepositoriesInput.js";
+import { ListBranchesInput } from "../input/ListBranchesInput.js";
+import { AddBranchInput } from "../input/AddBranchInput.js";
+import { GetFileInput } from "../input/GetFileInput.js";
+import { GetRepoInput } from "../input/GetRepoInput.js";
+import { injectable, inject } from 'inversify';
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import winston from 'winston';
-import { IRepositoryClient } from '../../application/ports/IRepositoryClient';
+import { IRepositoryClient } from '../../application/ports/IRepositoryClient.js';
+// BitbucketConfig is already imported at the top of the file
+import { TYPES } from '../types.js';
 
+@injectable()
 export class RepositoryClient implements IRepositoryClient {
     private readonly api: AxiosInstance;
     private readonly logger: winston.Logger;
 
-    constructor(config: BitbucketConfig, logger: winston.Logger) {
+    constructor(
+        @inject(TYPES.BitbucketConfig) config: BitbucketConfig, 
+        @inject(TYPES.Logger) logger: winston.Logger
+    ) {
         this.logger = logger;
         this.api = axios.create({
             baseURL: `${config.baseUrl}/rest/api/1.0`,

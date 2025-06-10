@@ -1,19 +1,26 @@
 import axios, { AxiosInstance } from "axios";
-import { BitbucketConfig } from "../config/BitbucketConfig";
-import { PullRequestInput } from "../input/PullRequestInput";
-import { PullRequestParams } from "../input/PullRequestParams";
-import { MergeOption } from "../option/MergeOption";
-import { CommentOption } from "../option/CommentOption";
-import { AddPrCommentInput } from "../input/AddPrCommentInput";
+import { BitbucketConfig } from "../config/BitbucketConfig.js";
+import { PullRequestInput } from "../input/PullRequestInput.js";
+import { PullRequestParams } from "../input/PullRequestParams.js";
+import { MergeOption } from "../option/MergeOption.js";
+import { CommentOption } from "../option/CommentOption.js";
+import { AddPrCommentInput } from "../input/AddPrCommentInput.js";
+import { injectable, inject } from 'inversify';
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import winston from 'winston';
-import { IPullRequestClient } from '../../application/ports/IPullRequestClient';
+import { IPullRequestClient } from '../../application/ports/IPullRequestClient.js';
+// BitbucketConfig is already imported at the top of the file
+import { TYPES } from '../types.js';
 
+@injectable()
 export class PullRequestClient implements IPullRequestClient {
     private readonly api: AxiosInstance;
     private readonly logger: winston.Logger;
 
-    constructor(config: BitbucketConfig, logger: winston.Logger) {
+    constructor(
+        @inject(TYPES.BitbucketConfig) config: BitbucketConfig, 
+        @inject(TYPES.Logger) logger: winston.Logger
+    ) {
         this.logger = logger;
         this.api = axios.create({
             baseURL: `${config.baseUrl}/rest/api/1.0`,

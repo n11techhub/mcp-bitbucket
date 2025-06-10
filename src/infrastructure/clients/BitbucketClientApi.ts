@@ -1,3 +1,4 @@
+import { injectable, inject } from 'inversify';
 import { BitbucketConfig } from "../config/BitbucketConfig";
 import { PullRequestInput } from "../input/PullRequestInput";
 import { PullRequestParams } from "../input/PullRequestParams";
@@ -5,18 +6,21 @@ import { MergeOption } from "../option/MergeOption";
 import { CommentOption } from "../option/CommentOption";
 import { ListRepositoriesInput } from "../input/ListRepositoriesInput";
 import { ListWorkspacesInput } from "../input/ListWorkspacesInput";
-import { SearchContentInput } from "../input/SearchContentInput";
-import { ListBranchesInput } from "../input/ListBranchesInput";
-import { AddPrCommentInput } from "../input/AddPrCommentInput";
-import { AddBranchInput } from "../input/AddBranchInput";
-import { GetFileInput } from "../input/GetFileInput";
-import { GetRepoInput } from "../input/GetRepoInput";
+import { SearchContentInput } from "../input/SearchContentInput.js";
+import { ListBranchesInput } from "../input/ListBranchesInput.js";
+import { AddPrCommentInput } from "../input/AddPrCommentInput.js";
+import { AddBranchInput } from "../input/AddBranchInput.js";
+import { GetFileInput } from "../input/GetFileInput.js";
+import { GetRepoInput } from "../input/GetRepoInput.js";
 import { IBitbucketClient } from '../../application/ports/IBitbucketClient.js';
-import { IPullRequestClient } from '../../application/ports/IPullRequestClient';
-import { IRepositoryClient } from '../../application/ports/IRepositoryClient';
-import { IWorkspaceClient } from '../../application/ports/IWorkspaceClient';
-import { ISearchClient } from '../../application/ports/ISearchClient';
+import { IPullRequestClient } from '../../application/ports/IPullRequestClient.js';
+import { IRepositoryClient } from '../../application/ports/IRepositoryClient.js';
+import { IWorkspaceClient } from '../../application/ports/IWorkspaceClient.js';
+import { ISearchClient } from '../../application/ports/ISearchClient.js';
+// BitbucketConfig is already imported at the top of the file
+import { TYPES } from '../types.js';
 
+@injectable()
 export class BitbucketClientApi implements IBitbucketClient {
     private readonly pullRequestClient: IPullRequestClient;
     private readonly repositoryClient: IRepositoryClient;
@@ -25,11 +29,11 @@ export class BitbucketClientApi implements IBitbucketClient {
     readonly config: BitbucketConfig;
 
     constructor(
-        config: BitbucketConfig,
-        pullRequestClient: IPullRequestClient,
-        repositoryClient: IRepositoryClient,
-        workspaceClient: IWorkspaceClient,
-        searchClient: ISearchClient
+        @inject(TYPES.BitbucketConfig) config: BitbucketConfig,
+        @inject(TYPES.IPullRequestClient) pullRequestClient: IPullRequestClient,
+        @inject(TYPES.IRepositoryClient) repositoryClient: IRepositoryClient,
+        @inject(TYPES.IWorkspaceClient) workspaceClient: IWorkspaceClient,
+        @inject(TYPES.ISearchClient) searchClient: ISearchClient
     ) {
         this.config = config;
         this.pullRequestClient = pullRequestClient;

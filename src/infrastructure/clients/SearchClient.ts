@@ -1,15 +1,21 @@
 import axios, { AxiosInstance } from "axios";
-import { BitbucketConfig } from "../config/BitbucketConfig";
-import { SearchContentInput } from "../input/SearchContentInput";
+import { BitbucketConfig } from "../config/BitbucketConfig.js";
+import { SearchContentInput } from "../input/SearchContentInput.js";
+import { injectable, inject } from 'inversify';
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import winston from 'winston';
-import { ISearchClient } from '../../application/ports/ISearchClient';
+import { ISearchClient } from '../../application/ports/ISearchClient.js';
+import { TYPES } from '../types.js';
 
+@injectable()
 export class SearchClient implements ISearchClient {
     private readonly api: AxiosInstance;
     private readonly logger: winston.Logger;
 
-    constructor(config: BitbucketConfig, logger: winston.Logger) {
+    constructor(
+        @inject(TYPES.BitbucketConfig) config: BitbucketConfig, 
+        @inject(TYPES.Logger) logger: winston.Logger
+    ) {
         this.logger = logger;
         this.api = axios.create({
             baseURL: `${config.baseUrl}/rest/api/1.0`,

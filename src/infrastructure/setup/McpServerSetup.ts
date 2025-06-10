@@ -19,7 +19,10 @@ import {IBitbucketClient} from "../../application/ports/IBitbucketClient.js";
 import { IBitbucketUseCase } from '../../application/use-cases/IBitbucketUseCase.js';
 import axios from "axios";
 import winston from 'winston';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../types.js';
 
+@injectable()
 export class McpServerSetup {
     public readonly server: Server;
     private readonly api: IBitbucketClient;
@@ -27,7 +30,11 @@ export class McpServerSetup {
     private readonly logger: winston.Logger;
     private readonly toolHandlers: Map<string, (args: any) => Promise<any>>;
 
-    constructor(api: IBitbucketClient, bitbucketUseCase: IBitbucketUseCase, logger: winston.Logger) {
+    constructor(
+        @inject(TYPES.IBitbucketClient) api: IBitbucketClient, 
+        @inject(TYPES.IBitbucketUseCase) bitbucketUseCase: IBitbucketUseCase, 
+        @inject(TYPES.Logger) logger: winston.Logger
+    ) {
         this.api = api;
         this.bitbucketUseCase = bitbucketUseCase;
         this.logger = logger;
