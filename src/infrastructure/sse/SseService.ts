@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { injectable, inject } from 'inversify';
 import winston from 'winston';
 import { IBitbucketUseCase } from '../../application/use-cases/IBitbucketUseCase.js';
@@ -16,6 +16,7 @@ export class SseService {
     ) {
         this.app = express();
         this.port = parseInt(process.env.SSE_PORT || '3000', 10);
+
         this.setupRoutes();
     }
 
