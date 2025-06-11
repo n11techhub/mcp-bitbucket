@@ -23,7 +23,15 @@ export class BitbucketUseCase implements IBitbucketUseCase {
     }
 
     async bitbucketCreatePullRequest(input: dtos.CreatePullRequestInput): Promise<any> {
-        return this.bitbucketClient.createBitbucketPullRequest(input);
+        const projectKey = input.project || this.bitbucketClient.getDefaultProjectKey();
+        if (!projectKey) {
+            throw new Error('Bitbucket project key is required and no default is set.');
+        }
+        const processedInput = {
+            ...input,
+            project: projectKey
+        };
+        return this.bitbucketClient.createBitbucketPullRequest(processedInput);
     }
 
     async bitbucketGetPullRequestDetails(input: dtos.GetPullRequestInput): Promise<any> {
