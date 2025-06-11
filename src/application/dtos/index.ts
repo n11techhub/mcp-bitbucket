@@ -15,3 +15,4 @@ export * from './ListWorkspacesInputSchema.js';
 export * from './MergeOptionSchema.js';
 export * from './MergePullRequestInputSchema.js';
 export * from './SearchContentInputSchema.js';
+export * from './GetUserInputSchema.js';

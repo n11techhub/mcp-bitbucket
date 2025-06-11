@@ -1,8 +1,8 @@
-import { PullRequestInput } from "../../infrastructure/input/PullRequestInput";
-import { PullRequestParams } from "../../infrastructure/input/PullRequestParams";
-import { MergeOption } from "../../infrastructure/option/MergeOption";
-import { CommentOption } from "../../infrastructure/option/CommentOption";
-import { AddPrCommentInput } from "../../infrastructure/input/AddPrCommentInput";
+import { PullRequestInput } from "../../infrastructure/input/PullRequestInput.js";
+import { PullRequestParams } from "../../infrastructure/input/PullRequestParams.js";
+import { MergeOption } from "../../infrastructure/option/MergeOption.js";
+import { CommentOption } from "../../infrastructure/option/CommentOption.js";
+import { AddPrCommentInput } from "../../infrastructure/input/AddPrCommentInput.js";
 
 export interface IPullRequestClient {
     createBitbucketPullRequest(input: PullRequestInput): Promise<any>;

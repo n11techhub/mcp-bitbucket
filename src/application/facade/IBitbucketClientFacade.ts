@@ -1,4 +1,4 @@
-import * as dtos from '../dtos';
+import * as dtos from '../dtos/index.js';
 import { PullRequestParams } from '../../infrastructure/input/PullRequestParams.js';
 
 export interface IBitbucketClientFacade {
@@ -20,4 +20,6 @@ export interface IBitbucketClientFacade {
     listBitbucketRepositoryBranches(input: dtos.ListBranchesInputType): Promise<any>;
 
     getDefaultProjectKey(): string | undefined;
+
+    getBitbucketUserDetails(input: dtos.GetUserInputType): Promise<any>;
 }

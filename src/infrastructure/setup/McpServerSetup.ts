@@ -13,6 +13,7 @@ import { GetDiffInputSchema, GetDiffInput } from '../../application/dtos/GetDiff
 import { ListWorkspacesInputSchema, ListWorkspacesInputType } from '../../application/dtos/ListWorkspacesInputSchema.js';
 import { ListRepositoriesInputSchema, ListRepositoriesInputType } from '../../application/dtos/ListRepositoriesInputSchema.js';
 import { SearchContentInputSchema, SearchContentInputType } from '../../application/dtos/SearchContentInputSchema.js';
+import { GetUserInputSchema, GetUserInputType } from '../../application/dtos/GetUserInputSchema.js';
 import {Server} from "@modelcontextprotocol/sdk/server/index.js";
 import {CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError} from "@modelcontextprotocol/sdk/types.js";
 import {IBitbucketClientFacade} from "../../application/facade/IBitbucketClientFacade.js";
@@ -69,6 +70,7 @@ export class McpServerSetup {
         this.toolHandlers.set('bitbucket_create_branch', async (args: any) => this.bitbucketUseCase.bitbucketCreateBranch(args as AddBranchInputType));
         this.toolHandlers.set('bitbucket_add_pull_request_file_line_comment', async (args: any) => this.bitbucketUseCase.bitbucketAddPullRequestFileLineComment(args as AddPrCommentInputType));
         this.toolHandlers.set('bitbucket_list_repository_branches', async (args: any) => this.bitbucketUseCase.bitbucketListRepositoryBranches(args as ListBranchesInputType));
+        this.toolHandlers.set('bitbucket_get_user_profile', async (args: any) => this.bitbucketUseCase.bitbucketGetUserDetails(args as GetUserInputType));
     }
 
     private setupToolHandlers() {
@@ -148,6 +150,11 @@ export class McpServerSetup {
                     name: 'bitbucket_list_repository_branches',
                     description: 'Lists branches for a Bitbucket repository.',
                     inputSchema: zodToJsonSchema(ListBranchesInputSchema)
+                },
+                {
+                    name: 'bitbucket_get_user_profile',
+                    description: 'Gets Bitbucket user profile details by username.',
+                    inputSchema: zodToJsonSchema(GetUserInputSchema)
                 }
             ]
         }));

@@ -11,6 +11,7 @@ const TYPES = {
     IRepositoryClient: Symbol.for("IRepositoryClient"),
     IWorkspaceClient: Symbol.for("IWorkspaceClient"),
     ISearchClient: Symbol.for("ISearchClient"),
+    IUserClient: Symbol.for("IUserClient"),
 
     // Use Cases
     IBitbucketUseCase: Symbol.for("IBitbucketUseCase"),
