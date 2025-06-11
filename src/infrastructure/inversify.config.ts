@@ -15,6 +15,8 @@ import { IWorkspaceClient } from '../application/ports/IWorkspaceClient.js';
 import { WorkspaceClient } from './clients/WorkspaceClient.js';
 import { ISearchClient } from '../application/ports/ISearchClient.js';
 import { SearchClient } from './clients/SearchClient.js';
+import { IUserClient } from '../application/ports/IUserClient.js';
+import { UserClient } from './clients/UserClient.js';
 
 // Use Cases
 import { IBitbucketUseCase } from '../application/use-cases/IBitbucketUseCase.js';
@@ -22,6 +24,7 @@ import { BitbucketUseCase } from '../application/use-cases/impl/BitbucketUseCase
 
 // MCP Server Setup
 import { McpServerSetup } from './setup/McpServerSetup.js';
+import { SseService } from './sse/SseService.js';
 
 const container = new Container();
 
@@ -43,6 +46,7 @@ container.bind<IPullRequestClient>(TYPES.IPullRequestClient).to(PullRequestClien
 container.bind<IRepositoryClient>(TYPES.IRepositoryClient).to(RepositoryClient).inSingletonScope();
 container.bind<IWorkspaceClient>(TYPES.IWorkspaceClient).to(WorkspaceClient).inSingletonScope();
 container.bind<ISearchClient>(TYPES.ISearchClient).to(SearchClient).inSingletonScope();
+container.bind<IUserClient>(TYPES.IUserClient).to(UserClient).inSingletonScope();
 container.bind<IBitbucketClientFacade>(TYPES.IBitbucketClient).to(BitbucketClientFacade).inSingletonScope();
 
 // Use Cases
@@ -50,5 +54,8 @@ container.bind<IBitbucketUseCase>(TYPES.IBitbucketUseCase).to(BitbucketUseCase).
 
 // MCP Server Setup
 container.bind<McpServerSetup>(TYPES.McpServerSetup).to(McpServerSetup).inSingletonScope();
+
+// SSE Service
+container.bind<SseService>(TYPES.SseService).to(SseService).inSingletonScope();
 
 export { container };

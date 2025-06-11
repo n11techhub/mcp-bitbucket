@@ -128,4 +128,8 @@ export class BitbucketUseCase implements IBitbucketUseCase {
     async bitbucketListRepositoryBranches(input: dtos.ListBranchesInputType): Promise<any> {
         return this.bitbucketClient.listBitbucketRepositoryBranches(input);
     }
+
+    async bitbucketGetUserDetails(input: dtos.GetUserInputType): Promise<any> {
+        return this.bitbucketClient.getBitbucketUserDetails(input);
+    }
 }

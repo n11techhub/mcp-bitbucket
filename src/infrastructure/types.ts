@@ -11,12 +11,16 @@ const TYPES = {
     IRepositoryClient: Symbol.for("IRepositoryClient"),
     IWorkspaceClient: Symbol.for("IWorkspaceClient"),
     ISearchClient: Symbol.for("ISearchClient"),
+    IUserClient: Symbol.for("IUserClient"),
 
     // Use Cases
     IBitbucketUseCase: Symbol.for("IBitbucketUseCase"),
 
     // MCP Server Setup
-    McpServerSetup: Symbol.for("McpServerSetup")
+    McpServerSetup: Symbol.for("McpServerSetup"),
+
+    // SSE Service
+    SseService: Symbol.for("SseService")
 };
 
 export { TYPES };
