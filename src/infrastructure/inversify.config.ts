@@ -24,6 +24,8 @@ import { BitbucketUseCase } from '../application/use-cases/impl/BitbucketUseCase
 
 // MCP Server Setup
 import { McpServerSetup } from './setup/McpServerSetup.js';
+import { McpSseTransport } from './sse/McpSseTransport.js';
+import { McpSseServer } from './sse/McpSseServer.js';
 
 const container = new Container();
 
@@ -53,5 +55,9 @@ container.bind<IBitbucketUseCase>(TYPES.IBitbucketUseCase).to(BitbucketUseCase).
 
 // MCP Server Setup
 container.bind<McpServerSetup>(TYPES.McpServerSetup).to(McpServerSetup).inSingletonScope();
+
+// SSE Components
+container.bind<McpSseTransport>(TYPES.McpSseTransport).to(McpSseTransport).inSingletonScope();
+container.bind<McpSseServer>(TYPES.McpSseServer).to(McpSseServer).inSingletonScope();
 
 export { container };

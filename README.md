@@ -15,6 +15,82 @@ Version: 1.0.0
 
 Model Context Protocol (MCP) is an open standard for securely connecting AI systems to external tools and data sources. This server implements MCP for Bitbucket Server/Data Center, enabling AI assistants to interact with your Bitbucket data programmatically.
 
+## Usage Instructions
+
+### Running with StdIO Transport (Default)
+
+```bash
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Start the server with stdio transport
+npm start
+```
+
+### Running with SSE Transport
+
+```bash
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Start the server with SSE transport
+npm run start:sse
+```
+
+By default, the SSE server runs on port 9000. You can customize this with the environment variable:
+
+```bash
+MCP_SSE_PORT=8080 npm run start:sse
+```
+
+### SSE Transport Endpoints
+
+When running with SSE transport, the following endpoints are available:
+
+- `http://localhost:9000/sse` - Main SSE endpoint (accepts both GET for SSE connections and POST for requests)
+- `http://localhost:9000/health` - Health check endpoint
+
+#### Connecting to the SSE Stream
+
+```javascript
+// Client-side example
+const eventSource = new EventSource('http://localhost:9000/sse?clientId=client123');
+
+eventSource.onmessage = (event) => {
+  console.log('Received:', JSON.parse(event.data));
+};
+```
+
+#### Sending Requests to the SSE Server
+
+```bash
+# Example: List available tools
+curl -X POST \
+  http://localhost:9000/sse \
+  -H "Content-Type: application/json" \
+  -d '{"id":"test-1","method":"list_tools","params":{},"clientId":"curl-test"}'
+
+# Example: Get Bitbucket repositories
+curl -X POST \
+  http://localhost:9000/sse \
+  -H "Content-Type: application/json" \
+  -d '{"id":"test-2","method":"bitbucket_list_repositories","params":{"workspaceSlug":"your-workspace"},"clientId":"curl-test"}'
+```
+
+## Transport Options
+
+This server supports two transport options:
+
+1. **StdIO Transport** (Default): Communication happens through standard input/output, suitable for direct integration with AI systems that launch the server as a child process.
+
+2. **SSE Transport**: Runs a persistent HTTP server with Server-Sent Events (SSE) endpoint, enabling remote connections through a request-response architecture while maintaining an open connection. Ideal for integrating with n8n and other web-based automation tools.
+
 ## Prerequisites
 
 - **Node.js**: Version 18.x or higher (as specified in `package.json`). [Download](https://nodejs.org/)

@@ -25,6 +25,32 @@ import { TYPES } from '../types.js';
 
 @injectable()
 export class McpServerSetup {
+    /**
+     * Call a specific tool by name with the given parameters
+     * Used by the SSE transport to handle tool calls directly
+     */
+    public async callTool(toolName: string, toolParams: any): Promise<any> {
+        try {
+            this.logger.info(`[callTool] Calling tool ${toolName}`, { params: toolParams });
+            const handler = this.toolHandlers.get(toolName);
+            
+            if (!handler) {
+                this.logger.error(`Unknown tool: ${toolName}`);
+                throw new Error(`Unknown tool: ${toolName}`);
+            }
+            
+            const result = await handler(toolParams);
+            return result;
+        } catch (error) {
+            this.logger.error('Tool execution error', { error });
+            if (axios.isAxiosError(error)) {
+                throw new Error(
+                    `Bitbucket API error: ${error.response?.data?.message ?? error.message}`
+                );
+            }
+            throw error;
+        }
+    }
     public readonly server: Server;
     private readonly api: IBitbucketClientFacade;
     private readonly bitbucketUseCase: IBitbucketUseCase;
