@@ -37,18 +37,14 @@ export class McpSseServer {
         try {
             this.logger.info(`Starting SSE server on port ${this.port}`);
             
-            // Configure and start the SSE transport
             this.transport.setPort(this.port);
             await this.transport.start();
             
-            // Manually set the request handler on our transport directly
             this.logger.info("Setting up SSE transport request handler");
             
-            // Define the tool call request handler
-            this.transport.onrequest = async (request) => {
+            this.transport.request = async (request) => {
                 this.logger.info(`[SSE Transport] Processing request: ${request.method}`);
                 
-                // Special handling for list_tools request
                 if (request.method === 'list_tools') {
                     this.logger.info('Handling list_tools request');
                     return {
@@ -73,14 +69,11 @@ export class McpSseServer {
                     };
                 }
                 
-                // Forward the request to our tool handler map
                 try {
                     if (request.method.startsWith('bitbucket_')) {
-                        // This is a tool call - call the appropriate Bitbucket usecase method
                         this.logger.info(`Handling Bitbucket tool call: ${request.method}`);
                         return await this.mcpServerSetup.callTool(request.method, request.params);
                     } else {
-                        // Unknown request
                         this.logger.error(`Unsupported request method: ${request.method}`);
                         return { error: `Unsupported request method: ${request.method}` };
                     }
@@ -90,7 +83,6 @@ export class McpSseServer {
                 }
             };
             
-            // Connect the MCP server to the SSE transport
             this.logger.info("Connecting MCP server to SSE transport");
             await this.mcpServerSetup.server.connect(this.transport);
             

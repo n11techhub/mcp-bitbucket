@@ -55,19 +55,15 @@ async function startSseServer(logger: winston.Logger, mcpSseServer: McpSseServer
 async function main() {
     const logger = container.get<winston.Logger>(TYPES.Logger);
     try {
-        // Get MCP server setup from DI container
         const mcpServerSetup = container.get<McpServerSetup>(TYPES.McpServerSetup);
         
-        // Always start the stdio server for backward compatibility
-        await startStdioServer(logger, mcpServerSetup);
-        
-        // Optionally start the SSE server if enabled
         if (shouldEnableSSE()) {
             const mcpSseServer = container.get<McpSseServer>(TYPES.McpSseServer);
             await startSseServer(logger, mcpSseServer);
+        } else {
+            await startStdioServer(logger, mcpServerSetup);
         }
         
-        // Set up process event handlers for graceful shutdown
         setupProcessHandlers(logger);
         
     } catch (error: any) {
@@ -82,11 +78,9 @@ async function main() {
 function setupProcessHandlers(logger: winston.Logger): void {
     const handleExit = async () => {
         logger.info('Received termination signal. Shutting down...');
-        // Give the process 3 seconds to cleanup before force exit
         setTimeout(() => process.exit(0), 3000);
     };
     
-    // Handle graceful shutdown
     process.on('SIGINT', handleExit);
     process.on('SIGTERM', handleExit);
     process.on('uncaughtException', (err) => {
@@ -95,4 +89,4 @@ function setupProcessHandlers(logger: winston.Logger): void {
     });
 }
 
-main();
+main().then(r => console.log(r)).catch(e => console.error(e));

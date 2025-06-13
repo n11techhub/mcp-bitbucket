@@ -27,7 +27,7 @@ export class BitbucketClientFacade implements IBitbucketClientFacade {
     private readonly repositoryClient: IRepositoryClient;
     private readonly workspaceClient: IWorkspaceClient;
     private readonly searchClient: ISearchClient;
-    private readonly userClient: IUserClient; // Added userClient
+    private readonly userClient: IUserClient;
     readonly config: BitbucketConfig;
 
     constructor(
@@ -36,14 +36,14 @@ export class BitbucketClientFacade implements IBitbucketClientFacade {
         @inject(TYPES.IRepositoryClient) repositoryClient: IRepositoryClient,
         @inject(TYPES.IWorkspaceClient) workspaceClient: IWorkspaceClient,
         @inject(TYPES.ISearchClient) searchClient: ISearchClient,
-        @inject(TYPES.IUserClient) userClient: IUserClient // Injected IUserClient
+        @inject(TYPES.IUserClient) userClient: IUserClient
     ) {
         this.config = config;
         this.pullRequestClient = pullRequestClient;
         this.repositoryClient = repositoryClient;
         this.workspaceClient = workspaceClient;
         this.searchClient = searchClient;
-        this.userClient = userClient; // Assigned userClient
+        this.userClient = userClient;
     }
 
     public async createBitbucketPullRequest(input: PullRequestInput): Promise<any> {
