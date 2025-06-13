@@ -3,17 +3,12 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import winston from 'winston';
 import { container } from './inversify.config.js';
 import { McpServerSetup } from './setup/McpServerSetup.js';
-import { SseService } from './sse/SseService.js';
 import { TYPES } from './types.js';
 
 async function main() {
     const logger = container.get<winston.Logger>(TYPES.Logger);
     try {
         const mcpServerSetup = container.get<McpServerSetup>(TYPES.McpServerSetup);
-        const sseService = container.get<SseService>(TYPES.SseService);
-
-        // Start the SSE server for HTTP communication
-        sseService.start();
 
         // Start the MCP server for stdio communication
         const transport = new StdioServerTransport();

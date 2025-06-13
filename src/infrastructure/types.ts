@@ -18,9 +18,6 @@ const TYPES = {
 
     // MCP Server Setup
     McpServerSetup: Symbol.for("McpServerSetup"),
-
-    // SSE Service
-    SseService: Symbol.for("SseService")
 };
 
 export { TYPES };
