@@ -1,0 +1,42 @@
+pipeline {
+    agent {
+        label "operation"
+    }
+    environment {
+        registry = 'nexus.n11.com'
+        registryUrl = 'https://nexus.n11.com'
+        registryCred = 'nexus_deployment_user'
+        GIT_REPO = 'ssh://git@stash.n11.com:7999/ai/mcp-bitbucket-n11.git'
+        branchName = 'master'
+        appName = 'mcp-bitbucket-n11'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                script{
+                    git url: GIT_REPO, branch: branchName
+                    sh "git log --pretty=format:\"%H - %ad - %an - %s\" --date=short -1 > commit.txt"
+                    archive 'commit.txt'
+                    commitId = sh(returnStdout: true, script: 'git rev-parse HEAD').trim().take(11)
+                    imageVersion = commitId
+                }
+            }
+        }
+        stage("Build") {
+            steps {
+                script {
+                    commitId = sh(returnStdout: true, script: 'git rev-parse HEAD').trim().take(11)
+                    def imageTag = "${commitId}"
+                    docker.withRegistry(registryUrl, registryCred){
+                        image = docker.build("${registry}/${appName}:${imageTag}", ".")
+                        image.push("${imageTag}")
+                        image.push("latest")
+                    }
+                }
+                sh """
+                    docker rmi ${registry}/${appName}:${BUILD_NUMBER} || true
+                """
+            }
+        } 
+    }
+}
