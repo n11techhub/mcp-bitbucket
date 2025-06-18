@@ -7,15 +7,17 @@
   "scripts": {
     "build": "tsc && chmod +x build/infrastructure/index.js",
     "start": "node build/infrastructure/index.js",
-    "start:sse": "node build/infrastructure/sse/index.js",
+    "start:sse": "ENABLE_SSE_TRANSPORT=1 node build/infrastructure/index.js",
+    "start:http": "ENABLE_HTTP_TRANSPORT=1 node build/infrastructure/index.js",
     "dev": "tsc -w",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "inspector": "npx @modelcontextprotocol/inspector build/infrastructure/index.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.1.1",
-    "axios": "1.8.2",
+    "@modelcontextprotocol/sdk": "^1.12.3",
+    "axios": "1.8.3",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "inversify": "^7.5.2",

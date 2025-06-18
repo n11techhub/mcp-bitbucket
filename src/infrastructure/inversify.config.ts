@@ -3,6 +3,7 @@ import { TYPES } from './types.js';
 import { BitbucketConfig } from './config/BitbucketConfig.js';
 import logger from './logging/logger.js';
 import winston from 'winston';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 
 // Clients
 import { IBitbucketClientFacade } from '../application/facade/IBitbucketClientFacade.js';
@@ -26,6 +27,7 @@ import { BitbucketUseCase } from '../application/use-cases/impl/BitbucketUseCase
 import { McpServerSetup } from './setup/McpServerSetup.js';
 import { McpSseTransport } from './sse/McpSseTransport.js';
 import { McpSseServer } from './sse/McpSseServer.js';
+import { McpHttpServer } from './http/McpHttpServer.js';
 
 const container = new Container();
 
@@ -55,9 +57,19 @@ container.bind<IBitbucketUseCase>(TYPES.IBitbucketUseCase).to(BitbucketUseCase).
 
 // MCP Server Setup
 container.bind<McpServerSetup>(TYPES.McpServerSetup).to(McpServerSetup).inSingletonScope();
+// Use constant value binding with direct server reference
+// This avoids complex type issues with the Server class from the MCP SDK
+container.bind(TYPES.Server).toDynamicValue((context) => {
+    // Get the McpServerSetup instance and extract its server property
+    const mcpServerSetup = container.get<McpServerSetup>(TYPES.McpServerSetup);
+    return mcpServerSetup.server;
+});
 
 // SSE Components
 container.bind<McpSseTransport>(TYPES.McpSseTransport).to(McpSseTransport).inSingletonScope();
 container.bind<McpSseServer>(TYPES.McpSseServer).to(McpSseServer).inSingletonScope();
+
+// HTTP Streaming Components
+container.bind<McpHttpServer>(TYPES.McpHttpServer).to(McpHttpServer).inSingletonScope();
 
 export { container };

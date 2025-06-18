@@ -18,10 +18,14 @@ const TYPES = {
 
     // MCP Server Setup
     McpServerSetup: Symbol.for("McpServerSetup"),
+    Server: Symbol.for("Server"),
     
     // SSE Transport and Server
     McpSseTransport: Symbol.for("McpSseTransport"),
     McpSseServer: Symbol.for("McpSseServer"),
+    
+    // HTTP Streaming Transport and Server
+    McpHttpServer: Symbol.for("McpHttpServer"),
 };
 
 export { TYPES };
