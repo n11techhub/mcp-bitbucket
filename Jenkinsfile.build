@@ -1,3 +1,5 @@
+def imageVersion = ''
+
 pipeline {
     agent {
         label "operation"
@@ -27,15 +29,13 @@ pipeline {
         stage("Build Docker Image and Push to Nexus") {
             steps {
                 script {
-                    commitId = sh(returnStdout: true, script: 'git rev-parse HEAD').trim().take(11)
-                    def imageTag = "${commitId}"
                     sh """
                         docker rmi ${registry}/${project}-${appName}:latest || true
                         docker rmi ${gcrRegistry}/${project}-${appName}:latest || true
                     """
                     docker.withRegistry(registryUrl, registryCred){
-                        image = docker.build("${registry}/${project}-${appName}:${imageTag}", ".")
-                        image.push("${imageTag}")
+                        image = docker.build("${registry}/${project}-${appName}:${imageVersion}", ".")
+                        image.push("${imageVersion}")
                         image.push("latest")
                     }
                 }
@@ -54,8 +54,8 @@ pipeline {
             }
                 sh "sleep 5"
                 sh "docker tag ${registry}/${project}-${appName}:latest ${gcrRegistry}/${project}-${appName}:latest"
-                sh "docker tag ${registry}/${project}-${appName}:${imageTag} ${gcrRegistry}/${project}-${appName}:${imageTag}"
-                sh "docker push  ${gcrRegistry}/${project}-${appName}:${imageTag}"
+                sh "docker tag ${registry}/${project}-${appName}:${imageVersion} ${gcrRegistry}/${project}-${appName}:${imageVersion}"
+                sh "docker push  ${gcrRegistry}/${project}-${appName}:${imageVersion}"
                 sh "docker push ${gcrRegistry}/${project}-${appName}:latest"
                 }
             }
