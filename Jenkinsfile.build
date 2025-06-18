@@ -6,8 +6,10 @@ pipeline {
         registry = 'nexus.n11.com'
         registryUrl = 'https://nexus.n11.com'
         registryCred = 'nexus_deployment_user'
+        gcrRegistry = "europe-west3-docker.pkg.dev/n11-commons/image-registry"
         GIT_REPO = 'ssh://git@stash.n11.com:7999/ai/mcp-bitbucket-n11.git'
         branchName = 'master'
+        project = 'ai'
         appName = 'mcp-bitbucket-n11'
     }
     stages {
@@ -22,21 +24,41 @@ pipeline {
                 }
             }
         }
-        stage("Build") {
+        stage("Build Docker Image and Push to Nexus") {
             steps {
                 script {
                     commitId = sh(returnStdout: true, script: 'git rev-parse HEAD').trim().take(11)
                     def imageTag = "${commitId}"
+                    sh """
+                        docker rmi ${registry}/${project}-${appName}:latest || true
+                        docker rmi ${gcrRegistry}/${project}-${appName}:latest || true
+                    """
                     docker.withRegistry(registryUrl, registryCred){
-                        image = docker.build("${registry}/${appName}:${imageTag}", ".")
+                        image = docker.build("${registry}/${project}-${appName}:${imageTag}", ".")
                         image.push("${imageTag}")
                         image.push("latest")
                     }
                 }
-                sh """
-                    docker rmi ${registry}/${appName}:${BUILD_NUMBER} || true
-                """
             }
-        } 
+        }
+        stage("Push Docker Image to GCP") {
+            steps {
+                script {
+                    withCredentials([file(credentialsId: 'jenkins@n11-commons.iam.gserviceaccount.com', variable: 'GOOGLE_CREDENTIALS_FILE')]) {
+                    withEnv(["GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_CREDENTIALS_FILE}"]) {
+                        sh """
+                            gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}"
+                            gcloud auth configure-docker europe-west3-docker.pkg.dev
+                        """
+                }   
+            }
+                sh "sleep 5"
+                sh "docker tag ${registry}/${project}-${appName}:latest ${gcrRegistry}/${project}-${appName}:latest"
+                sh "docker tag ${registry}/${project}-${appName}:${imageTag} ${gcrRegistry}/${project}-${appName}:${imageTag}"
+                sh "docker push  ${gcrRegistry}/${project}-${appName}:${imageTag}"
+                sh "docker push ${gcrRegistry}/${project}-${appName}:latest"
+                }
+            }
+        }
     }
 }
