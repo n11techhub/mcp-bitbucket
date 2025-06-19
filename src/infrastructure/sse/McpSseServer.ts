@@ -1,5 +1,4 @@
 import { inject, injectable } from 'inversify';
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import winston from 'winston';
 import { TYPES } from '../types.js';
 import { McpSseTransport } from './McpSseTransport.js';
