@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM nexushub.n11.com/node:18-alpine AS builder
 
 WORKDIR /usr/src/app
 
@@ -11,7 +11,7 @@ RUN npm run build
 
 RUN npm prune --production
 
-FROM node:18-alpine
+FROM nexushub.n11.com/node:18-alpine
 
 WORKDIR /usr/src/app
 
