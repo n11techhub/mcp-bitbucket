@@ -252,41 +252,90 @@ export class McpHttpServer {
             this.transport.request = async (request: any) => {
                 this.logger.info(`[HTTP Transport] Processing request: ${request.method}`);
                 
-                if (request.method === 'list_tools') {
+                // Handle standard MCP protocol methods
+                if (request.method === 'initialize') {
+                    this.logger.info('Handling initialize request');
+                    return {
+                        jsonrpc: "2.0",
+                        id: request.id,
+                        result: {
+                            protocolVersion: "2024-11-05",
+                            serverInfo: {
+                                name: "Bitbucket MCP Server",
+                                version: "1.0.0"
+                            },
+                            capabilities: {
+                                roots: {
+                                    listChanged: true
+                                }
+                            }
+                        }
+                    };
+                } else if (request.method === 'shutdown') {
+                    this.logger.info('Handling shutdown request');
+                    return {
+                        jsonrpc: "2.0",
+                        id: request.id,
+                        result: null
+                    };
+                } else if (request.method === 'list_tools') {
                     this.logger.info('Handling list_tools request');
                     return {
-                        tools: [
-                            { name: 'bitbucket_create_pull_request', description: 'Creates a new Bitbucket pull request' },
-                            { name: 'bitbucket_get_pull_request_details', description: 'Gets details for a Bitbucket pull request' },
-                            { name: 'bitbucket_get_pull_request_diff', description: 'Gets the diff for a Bitbucket pull request' },
-                            { name: 'bitbucket_get_pull_request_reviews', description: 'Gets reviews for a Bitbucket pull request' },
-                            { name: 'bitbucket_merge_pull_request', description: 'Merges a Bitbucket pull request' },
-                            { name: 'bitbucket_decline_pull_request', description: 'Declines a Bitbucket pull request' },
-                            { name: 'bitbucket_add_pull_request_comment', description: 'Adds a general comment to a Bitbucket pull request' },
-                            { name: 'bitbucket_add_pull_request_file_line_comment', description: 'Adds a comment to a Bitbucket pull request on a specific file line' },
-                            { name: 'bitbucket_list_repositories', description: 'Lists Bitbucket repositories' },
-                            { name: 'bitbucket_list_workspaces', description: 'Lists available Bitbucket workspaces' },
-                            { name: 'bitbucket_list_repository_branches', description: 'Lists branches for a Bitbucket repository' },
-                            { name: 'bitbucket_get_repository_details', description: 'Gets details for a specific Bitbucket repository' },
-                            { name: 'bitbucket_search_content', description: 'Searches content within Bitbucket repositories' },
-                            { name: 'bitbucket_get_file_content', description: 'Gets the content of a specific file from a Bitbucket repository' },
-                            { name: 'bitbucket_create_branch', description: 'Creates a new branch in a Bitbucket repository' },
-                            { name: 'bitbucket_get_user_profile', description: 'Gets Bitbucket user profile details by username' }
-                        ]
+                        jsonrpc: "2.0",
+                        id: request.id,
+                        result: {
+                            tools: [
+                                { name: 'bitbucket_create_pull_request', description: 'Creates a new Bitbucket pull request' },
+                                { name: 'bitbucket_get_pull_request_details', description: 'Gets details for a Bitbucket pull request' },
+                                { name: 'bitbucket_get_pull_request_diff', description: 'Gets the diff for a Bitbucket pull request' },
+                                { name: 'bitbucket_get_pull_request_reviews', description: 'Gets reviews for a Bitbucket pull request' },
+                                { name: 'bitbucket_merge_pull_request', description: 'Merges a Bitbucket pull request' },
+                                { name: 'bitbucket_decline_pull_request', description: 'Declines a Bitbucket pull request' },
+                                { name: 'bitbucket_add_pull_request_comment', description: 'Adds a general comment to a Bitbucket pull request' },
+                                { name: 'bitbucket_add_pull_request_file_line_comment', description: 'Adds a comment to a Bitbucket pull request on a specific file line' },
+                                { name: 'bitbucket_list_repositories', description: 'Lists Bitbucket repositories' },
+                                { name: 'bitbucket_list_workspaces', description: 'Lists available Bitbucket workspaces' },
+                                { name: 'bitbucket_list_repository_branches', description: 'Lists branches for a Bitbucket repository' },
+                                { name: 'bitbucket_get_repository_details', description: 'Gets details for a specific Bitbucket repository' },
+                                { name: 'bitbucket_search_content', description: 'Searches content within Bitbucket repositories' },
+                                { name: 'bitbucket_get_file_content', description: 'Gets the content of a specific file from a Bitbucket repository' },
+                                { name: 'bitbucket_create_branch', description: 'Creates a new branch in a Bitbucket repository' },
+                                { name: 'bitbucket_get_user_profile', description: 'Gets Bitbucket user profile details by username' }
+                            ]
+                        }
                     };
                 }
                 
                 try {
                     if (request.method.startsWith('bitbucket_')) {
                         this.logger.info(`Handling Bitbucket tool call: ${request.method}`);
-                        return await this.mcpServerSetup.callTool(request.method, request.params);
+                        const result = await this.mcpServerSetup.callTool(request.method, request.params);
+                        return {
+                            jsonrpc: "2.0",
+                            id: request.id, // Pass through the request ID
+                            result: result
+                        };
                     } else {
                         this.logger.error(`Unsupported request method: ${request.method}`);
-                        return { error: `Unsupported request method: ${request.method}` };
+                        return {
+                            jsonrpc: "2.0",
+                            id: request.id,
+                            error: {
+                                code: -32601,
+                                message: `Method not found: ${request.method}`
+                            }
+                        };
                     }
                 } catch (error: any) {
                     this.logger.error('Error handling request', error);
-                    return { error: error instanceof Error ? error.message : String(error) };
+                    return {
+                        jsonrpc: "2.0",
+                        id: request.id || null,
+                        error: {
+                            code: -32000,
+                            message: error instanceof Error ? error.message : String(error)
+                        }
+                    };
                 }
             };
             
