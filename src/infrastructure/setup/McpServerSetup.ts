@@ -51,6 +51,97 @@ export class McpServerSetup {
             throw error;
         }
     }
+    
+    /**
+     * Returns a list of available tools with their schemas
+     * This method is used by the HTTP transport to handle tools/list requests
+     */
+    public getAvailableTools(): any[] {
+        // Directly return the tool definitions with schemas
+        // These are the same tools registered with the MCP Server in the constructor
+        return [
+            {
+                name: 'bitbucket_create_pull_request',
+                description: 'Creates a new Bitbucket pull request',
+                inputSchema: zodToJsonSchema(CreatePullRequestInputSchema)
+            },
+            {
+                name: 'bitbucket_get_pull_request_details',
+                description: 'Gets details for a Bitbucket pull request',
+                inputSchema: zodToJsonSchema(GetPullRequestInputSchema)
+            },
+            {
+                name: 'bitbucket_get_pull_request_diff',
+                description: 'Gets the diff for a Bitbucket pull request',
+                inputSchema: zodToJsonSchema(GetDiffInputSchema)
+            },
+            {
+                name: 'bitbucket_get_pull_request_reviews',
+                description: 'Gets reviews for a Bitbucket pull request',
+                inputSchema: zodToJsonSchema(GetPullRequestInputSchema)
+            },
+            {
+                name: 'bitbucket_list_workspaces',
+                description: 'Lists available Bitbucket workspaces.',
+                inputSchema: zodToJsonSchema(ListWorkspacesInputSchema)
+            },
+            {
+                name: 'bitbucket_list_repositories',
+                description: 'Lists Bitbucket repositories.',
+                inputSchema: zodToJsonSchema(ListRepositoriesInputSchema)
+            },
+            {
+                name: 'bitbucket_search_content',
+                description: 'Searches content within Bitbucket repositories.',
+                inputSchema: zodToJsonSchema(SearchContentInputSchema)
+            },
+            {
+                name: 'bitbucket_get_repository_details',
+                description: 'Gets details for a specific Bitbucket repository.',
+                inputSchema: zodToJsonSchema(GetRepoInputSchema)
+            },
+            {
+                name: 'bitbucket_get_file_content',
+                description: 'Gets the content of a specific file from a Bitbucket repository.',
+                inputSchema: zodToJsonSchema(GetFileInputSchema)
+            },
+            {
+                name: 'bitbucket_create_branch',
+                description: 'Creates a new branch in a Bitbucket repository.',
+                inputSchema: zodToJsonSchema(AddBranchInputSchema)
+            },
+            {
+                name: 'bitbucket_add_pull_request_file_line_comment',
+                description: 'Adds a comment to a Bitbucket pull request, optionally as an inline comment on a specific file and line.',
+                inputSchema: zodToJsonSchema(AddPrCommentInputSchema)
+            },
+            {
+                name: 'bitbucket_list_repository_branches',
+                description: 'Lists branches for a Bitbucket repository.',
+                inputSchema: zodToJsonSchema(ListBranchesInputSchema)
+            },
+            {
+                name: 'bitbucket_get_user_profile',
+                description: 'Gets Bitbucket user profile details by username.',
+                inputSchema: zodToJsonSchema(GetUserInputSchema)
+            },
+            {
+                name: 'bitbucket_merge_pull_request',
+                description: 'Merges a Bitbucket pull request',
+                inputSchema: zodToJsonSchema(MergePullRequestInputSchema)
+            },
+            {
+                name: 'bitbucket_decline_pull_request',
+                description: 'Declines a Bitbucket pull request',
+                inputSchema: zodToJsonSchema(DeclinePullRequestInputSchema)
+            },
+            {
+                name: 'bitbucket_add_pull_request_comment',
+                description: 'Adds a general comment to a Bitbucket pull request',
+                inputSchema: zodToJsonSchema(AddCommentInputSchema)
+            }
+        ];
+    }
     public readonly server: Server;
     private readonly api: IBitbucketClientFacade;
     private readonly bitbucketUseCase: IBitbucketUseCase;
