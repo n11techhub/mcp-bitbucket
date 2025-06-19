@@ -313,12 +313,61 @@ export class McpHttpServer {
                 }
                 
                 try {
-                    if (request.method.startsWith('bitbucket_')) {
-                        this.logger.info(`Handling Bitbucket tool call: ${request.method}`);
+                    // Handle MCP Inspector's tools/call method
+                    if (request.method === 'tools/call') {
+                        this.logger.info(`Handling tools/call request for tool: ${request.params?.name}`);
+                        
+                        if (!request.params?.name) {
+                            return {
+                                jsonrpc: "2.0",
+                                id: request.id,
+                                error: {
+                                    code: -32602,
+                                    message: "Invalid params: missing required field 'name'"
+                                }
+                            };
+                        }
+                        
+                        const toolName = request.params.name;
+                        const toolArgs = request.params.arguments || {};
+                        
+                        // Only allow Bitbucket tools
+                        if (toolName.startsWith('bitbucket_')) {
+                            try {
+                                const result = await this.mcpServerSetup.callTool(toolName, toolArgs);
+                                return {
+                                    jsonrpc: "2.0",
+                                    id: request.id,
+                                    result: result
+                                };
+                            } catch (toolError: any) {
+                                this.logger.error(`Error executing tool ${toolName}`, toolError);
+                                return {
+                                    jsonrpc: "2.0",
+                                    id: request.id,
+                                    error: {
+                                        code: -32603,
+                                        message: `Tool execution error: ${toolError.message}`
+                                    }
+                                };
+                            }
+                        } else {
+                            return {
+                                jsonrpc: "2.0",
+                                id: request.id,
+                                error: {
+                                    code: -32601,
+                                    message: `Unknown tool: ${toolName}`
+                                }
+                            };
+                        }
+                    // For backward compatibility, still handle direct tool calls
+                    } else if (request.method.startsWith('bitbucket_')) {
+                        this.logger.info(`Handling Bitbucket tool call directly: ${request.method}`);
                         const result = await this.mcpServerSetup.callTool(request.method, request.params);
                         return {
                             jsonrpc: "2.0",
-                            id: request.id, // Pass through the request ID
+                            id: request.id,
                             result: result
                         };
                     } else {
