@@ -6,8 +6,6 @@ import { McpServerSetup } from './setup/McpServerSetup.js';
 import { McpHttpServer } from './http/McpHttpServer.js';
 import { TYPES } from './types.js';
 
-
-
 /**
  * Determines if HTTP streaming transport should be enabled based on environment variables
  */
@@ -31,8 +29,6 @@ async function startStdioServer(logger: winston.Logger, mcpServerSetup: McpServe
         throw error; // Re-throw to be handled by the main function
     }
 }
-
-
 
 /**
  * Starts the MCP server with HTTP streaming transport
