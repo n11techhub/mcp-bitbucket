@@ -1,14 +1,14 @@
 import axios, { AxiosInstance } from "axios";
 import { BitbucketConfig } from "../config/BitbucketConfig.js";
-import { ListRepositoriesInput } from "../input/ListRepositoriesInput.js";
-import { ListBranchesInput } from "../input/ListBranchesInput.js";
-import { AddBranchInput } from "../input/AddBranchInput.js";
-import { GetFileInput } from "../input/GetFileInput.js";
-import { GetRepoInput } from "../input/GetRepoInput.js";
-import { injectable, inject } from 'inversify';
+import { ListRepositoriesInput } from '../../domain/contracts/input/ListRepositoriesInput.js';
+import { ListBranchesInput } from '../../domain/contracts/input/ListBranchesInput.js';
+import { AddBranchInput } from '../../domain/contracts/input/AddBranchInput.js';
+import { GetFileInput } from '../../domain/contracts/input/GetFileInput.js';
+import { GetRepoInput } from '../../domain/contracts/input/GetRepoInput.js';
+import { IRepositoryClient } from '../../domain/repository/IRepositoryClient.js';
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import winston from 'winston';
-import { IRepositoryClient } from '../../application/ports/IRepositoryClient.js';
+import { injectable, inject } from 'inversify';
 import { TYPES } from '../types.js';
 
 @injectable()

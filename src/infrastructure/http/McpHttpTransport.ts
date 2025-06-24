@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import winston from 'winston';
 
 export interface Transport {
@@ -31,6 +32,7 @@ export class McpHttpTransport implements Transport {
     }
 
     public async start(): Promise<void> {
+                this.app.use(helmet());
         this.app.use(cors());
         this.app.use(express.json());
 

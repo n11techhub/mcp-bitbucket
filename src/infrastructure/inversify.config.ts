@@ -6,16 +6,16 @@ import winston from 'winston';
 
 // Clients
 import { IBitbucketClientFacade } from '../application/facade/IBitbucketClientFacade.js';
-import { BitbucketClientFacade } from './facade/BitbucketClientFacade.js';
-import { IPullRequestClient } from '../application/ports/IPullRequestClient.js';
+import { BitbucketClientFacade } from '../application/facade/impl/BitbucketClientFacade.js';
+import { IPullRequestClient } from '../domain/repository/IPullRequestClient.js';
 import { PullRequestClient } from './clients/PullRequestClient.js';
-import { IRepositoryClient } from '../application/ports/IRepositoryClient.js';
+import { IRepositoryClient } from '../domain/repository/IRepositoryClient.js';
 import { RepositoryClient } from './clients/RepositoryClient.js';
-import { IWorkspaceClient } from '../application/ports/IWorkspaceClient.js';
+import { IWorkspaceClient } from '../domain/repository/IWorkspaceClient.js';
 import { WorkspaceClient } from './clients/WorkspaceClient.js';
-import { ISearchClient } from '../application/ports/ISearchClient.js';
+import { ISearchClient } from '../domain/repository/ISearchClient.js';
 import { SearchClient } from './clients/SearchClient.js';
-import { IUserClient } from '../application/ports/IUserClient.js';
+import { IUserClient } from '../domain/repository/IUserClient.js';
 import { UserClient } from './clients/UserClient.js';
 
 // Use Cases
@@ -56,7 +56,7 @@ container.bind<IBitbucketUseCase>(TYPES.IBitbucketUseCase).to(BitbucketUseCase).
 container.bind<McpServerSetup>(TYPES.McpServerSetup).to(McpServerSetup).inSingletonScope();
 
 // Server
-container.bind(TYPES.Server).toDynamicValue((context) => {
+container.bind(TYPES.Server).toDynamicValue(() => {
     const mcpServerSetup = container.get<McpServerSetup>(TYPES.McpServerSetup);
     return mcpServerSetup.server;
 });

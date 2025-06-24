@@ -1,14 +1,14 @@
 import axios, { AxiosInstance } from "axios";
-import { BitbucketConfig } from "../config/BitbucketConfig.js";
-import { PullRequestInput } from "../input/PullRequestInput.js";
-import { PullRequestParams } from "../input/PullRequestParams.js";
-import { MergeOption } from "../option/MergeOption.js";
-import { CommentOption } from "../option/CommentOption.js";
-import { AddPrCommentInput } from "../input/AddPrCommentInput.js";
 import { injectable, inject } from 'inversify';
+import { BitbucketConfig } from "../config/BitbucketConfig.js";
+import { PullRequestInput } from '../../domain/contracts/input/PullRequestInput.js';
+import { PullRequestParams } from '../../domain/contracts/input/PullRequestParams.js';
+import { MergeOption } from '../../domain/contracts/option/MergeOption.js';
+import { CommentOption } from '../../domain/contracts/option/CommentOption.js';
+import { AddPrCommentInput } from '../../domain/contracts/input/AddPrCommentInput.js';
+import { IPullRequestClient } from '../../domain/repository/IPullRequestClient.js';
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import winston from 'winston';
-import { IPullRequestClient } from '../../application/ports/IPullRequestClient.js';
 import { TYPES } from '../types.js';
 
 @injectable()
@@ -52,7 +52,7 @@ export class PullRequestClient implements IPullRequestClient {
                         project: { key: input.project }
                     }
                 },
-                reviewers: input.reviewers?.map(username => ({ user: { name: username } }))
+                reviewers: input.reviewers?.map((username: string) => ({ user: { name: username } }))
             }
         );
 

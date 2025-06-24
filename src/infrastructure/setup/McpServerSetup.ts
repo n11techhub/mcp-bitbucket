@@ -1,31 +1,31 @@
-import {GetRepoInputSchema, GetRepoInputType} from "../../application/dtos/GetRepoInputSchema.js";
-import {GetFileInputSchema, GetFileInputType} from "../../application/dtos/GetFileInputSchema.js";
-import {AddBranchInputSchema, AddBranchInputType} from "../../application/dtos/AddBranchInputSchema.js";
-import {AddPrCommentInputSchema, AddPrCommentInputType} from "../../application/dtos/AddPrCommentInputSchema.js";
-import {ListBranchesInputSchema, ListBranchesInputType} from "../../application/dtos/ListBranchesInputSchema.js";
+import {GetRepoInputSchema, GetRepoInputType} from "../../domain/contracts/schemas/GetRepoInputSchema.js";
+import {GetFileInputSchema, GetFileInputType} from "../../domain/contracts/schemas/GetFileInputSchema.js";
+import {AddBranchInputSchema, AddBranchInputType} from "../../domain/contracts/schemas/AddBranchInputSchema.js";
+import {AddPrCommentInputSchema, AddPrCommentInputType} from "../../domain/contracts/schemas/AddPrCommentInputSchema.js";
+import {ListBranchesInputSchema, ListBranchesInputType} from "../../domain/contracts/schemas/ListBranchesInputSchema.js";
 import {
     CreatePullRequestInputSchema,
     CreatePullRequestInput
-} from '../../application/dtos/CreatePullRequestInputSchema.js';
-import {GetPullRequestInputSchema, GetPullRequestInput} from '../../application/dtos/GetPullRequestInputSchema.js';
+} from '../../domain/contracts/schemas/CreatePullRequestInputSchema.js';
+import {GetPullRequestInputSchema, GetPullRequestInput} from '../../domain/contracts/schemas/GetPullRequestInputSchema.js';
 import {
     MergePullRequestInputSchema,
     MergePullRequestInput
-} from '../../application/dtos/MergePullRequestInputSchema.js';
+} from '../../domain/contracts/schemas/MergePullRequestInputSchema.js';
 import {
     DeclinePullRequestInputSchema,
     DeclinePullRequestInput
-} from '../../application/dtos/DeclinePullRequestInputSchema.js';
-import {AddCommentInputSchema, AddCommentInput} from '../../application/dtos/AddCommentInputSchema.js';
+} from '../../domain/contracts/schemas/DeclinePullRequestInputSchema.js';
+import {AddCommentInputSchema, AddCommentInput} from '../../domain/contracts/schemas/AddCommentInputSchema.js';
 import {zodToJsonSchema} from 'zod-to-json-schema';
-import {GetDiffInputSchema, GetDiffInput} from '../../application/dtos/GetDiffInputSchema.js';
-import {ListWorkspacesInputSchema, ListWorkspacesInputType} from '../../application/dtos/ListWorkspacesInputSchema.js';
+import {GetDiffInputSchema, GetDiffInput} from '../../domain/contracts/schemas/GetDiffInputSchema.js';
+import {ListWorkspacesInputSchema, ListWorkspacesInputType} from '../../domain/contracts/schemas/ListWorkspacesInputSchema.js';
 import {
     ListRepositoriesInputSchema,
     ListRepositoriesInputType
-} from '../../application/dtos/ListRepositoriesInputSchema.js';
-import {SearchContentInputSchema, SearchContentInputType} from '../../application/dtos/SearchContentInputSchema.js';
-import {GetUserInputSchema, GetUserInputType} from '../../application/dtos/GetUserInputSchema.js';
+} from '../../domain/contracts/schemas/ListRepositoriesInputSchema.js';
+import {SearchContentInputSchema, SearchContentInputType} from '../../domain/contracts/schemas/SearchContentInputSchema.js';
+import {GetUserInputSchema, GetUserInputType} from '../../domain/contracts/schemas/GetUserInputSchema.js';
 import {Server} from "@modelcontextprotocol/sdk/server/index.js";
 import {CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError} from "@modelcontextprotocol/sdk/types.js";
 import {IBitbucketClientFacade} from "../../application/facade/IBitbucketClientFacade.js";

@@ -66,7 +66,7 @@ export class McpHttpServer {
                     return {
                         jsonrpc: "2.0",
                         id: request.id,
-                        result: {}
+                        result: {status: 'ok', timestamp: new Date().toISOString()}
                     };
                 } else if (request.method === 'notifications/initialized') {
                     this.logger.info('Handling notifications/initialized notification');
@@ -80,7 +80,7 @@ export class McpHttpServer {
                     return {
                         jsonrpc: "2.0",
                         id: request.id,
-                        result: {}
+                        result: {status: 'ok', timestamp: new Date().toISOString()}
                     };
                 } else if (request.method === 'tools/list') {
                     this.logger.info('Handling tools/list request');

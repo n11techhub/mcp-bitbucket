@@ -3,8 +3,8 @@ import axios, {AxiosInstance} from "axios";
 import winston from "winston";
 import {TYPES} from "../types.js";
 import {BitbucketConfig} from "../config/BitbucketConfig.js";
-import {IUserClient} from "../../application/ports/IUserClient.js";
-import { GetUserInputType } from "../../application/dtos/index.js";
+import { IUserClient } from '../../domain/repository/IUserClient.js';
+import { GetUserInputType } from '../../domain/contracts/schemas/index.js';
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 
 @injectable()

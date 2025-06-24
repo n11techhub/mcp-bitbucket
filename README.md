@@ -1,8 +1,27 @@
-# Bitbucket Server/Data Center MCP Server (mcp-bitbucket-n11)
+# mcp-bitbucket-n11
 
-A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Bitbucket Server/Data Center. This server enables AI systems (e.g., LLMs, AI coding assistants) to securely interact with your self-hosted Bitbucket repositories, pull requests, projects, and code in real time.
+![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 
-Version: 1.0.0
+**A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Bitbucket Server/Data Center.**
+
+This server enables AI systems (e.g., LLMs, AI coding assistants) to securely interact with your self-hosted Bitbucket repositories, pull requests, projects, and code in real time.
+
+## Table of Contents
+
+- [Why Use This Server?](#why-use-this-server)
+- [What is MCP?](#what-is-mcp)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+  - [Running with Docker (Recommended)](#option-a-running-with-docker-recommended)
+  - [Running Locally with Node.js](#option-b-running-locally-with-nodejs-for-development)
+- [Usage](#usage)
+  - [StdIO Transport (Default)](#stdio-transport-default)
+  - [SSE Transport](#sse-transport)
+- [Connecting to an AI Assistant](#connect-to-ai-assistant)
+- [Available MCP Tools](#mcp-tools)
+- [Development](#development)
+- [License](#license)
 
 ## Why Use This Server?
 
@@ -15,88 +34,12 @@ Version: 1.0.0
 
 Model Context Protocol (MCP) is an open standard for securely connecting AI systems to external tools and data sources. This server implements MCP for Bitbucket Server/Data Center, enabling AI assistants to interact with your Bitbucket data programmatically.
 
-## Usage Instructions
-
-### Running with StdIO Transport (Default)
-
-```bash
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
-
-# Start the server with stdio transport
-npm start
-```
-
-### Running with SSE Transport
-
-```bash
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
-
-# Start the server with SSE transport
-npm run start:sse
-```
-
-By default, the SSE server runs on port 9000. You can customize this with the environment variable:
-
-```bash
-MCP_SSE_PORT=8080 npm run start:sse
-```
-
-### SSE Transport Endpoints
-
-When running with SSE transport, the following endpoints are available:
-
-- `http://localhost:9000/sse` - Main SSE endpoint (accepts both GET for SSE connections and POST for requests)
-- `http://localhost:9000/health` - Health check endpoint
-
-#### Connecting to the SSE Stream
-
-```javascript
-// Client-side example
-const eventSource = new EventSource('http://localhost:9000/sse?clientId=client123');
-
-eventSource.onmessage = (event) => {
-  console.log('Received:', JSON.parse(event.data));
-};
-```
-
-#### Sending Requests to the SSE Server
-
-```bash
-# Example: List available tools
-curl -X POST \
-  http://localhost:9000/sse \
-  -H "Content-Type: application/json" \
-  -d '{"id":"test-1","method":"list_tools","params":{},"clientId":"curl-test"}'
-
-# Example: Get Bitbucket repositories
-curl -X POST \
-  http://localhost:9000/sse \
-  -H "Content-Type: application/json" \
-  -d '{"id":"test-2","method":"bitbucket_list_repositories","params":{"workspaceSlug":"your-workspace"},"clientId":"curl-test"}'
-```
-
-## Transport Options
-
-This server supports two transport options:
-
-1. **StdIO Transport** (Default): Communication happens through standard input/output, suitable for direct integration with AI systems that launch the server as a child process.
-
-2. **SSE Transport**: Runs a persistent HTTP server with Server-Sent Events (SSE) endpoint, enabling remote connections through a request-response architecture while maintaining an open connection. Ideal for integrating with n8n and other web-based automation tools.
-
 ## Prerequisites
 
-- **Node.js**: Version 18.x or higher (as specified in `package.json`). [Download](https://nodejs.org/)
-- **Bitbucket Server/Data Center Account**: Access to a Bitbucket Server/Data Center instance with an account that can generate Personal Access Tokens (PATs).
+- **Node.js**: Version 18.x or higher.
+- **Bitbucket Server/Data Center Account**: Access to a Bitbucket Server/Data Center instance with a Personal Access Token (PAT).
 - **Git**: For cloning the repository.
-- **Docker** (Recommended for running, optional for local development).
+- **Docker**: (Recommended) For running the server in a containerized environment.
 
 ## Setup
 
@@ -106,7 +49,6 @@ You can run this MCP server using Docker (recommended) or directly with Node.js.
 
 1.  **Clone the Repository:**
     ```bash
-    # Replace <repository_url> with the actual URL of this project
     git clone <repository_url>
     cd mcp-bitbucket-n11
     ```
@@ -117,22 +59,17 @@ You can run this MCP server using Docker (recommended) or directly with Node.js.
     ```
 
 3.  **Run the Docker Container:**
-    The server requires your Bitbucket Server URL and a Personal Access Token (PAT) with appropriate permissions (usually read access to repositories, pull requests, etc.).
     ```bash
     docker run -i --rm --network=host \
       -e BITBUCKET_URL="https://your-bitbucket-server.com" \
       -e BITBUCKET_TOKEN="your_personal_access_token" \
-      # Optional: Set a default project key if you frequently work with one project
-      # -e BITBUCKET_DEFAULT_PROJECT="YOUR_PROJECT_KEY" \
       mcp-bitbucket-n11:latest
     ```
-    Replace placeholders with your actual Bitbucket Server URL, PAT, and optional default project key.
 
 ### Option B: Running Locally with Node.js (for Development)
 
 1.  **Clone the Repository:**
     ```bash
-    # Replace <repository_url> with the actual URL of this project
     git clone <repository_url>
     cd mcp-bitbucket-n11
     ```
@@ -143,31 +80,44 @@ You can run this MCP server using Docker (recommended) or directly with Node.js.
     ```
 
 3.  **Configure Credentials:**
-    Set the following environment variables. You can create a `.env` file in the project root for this:
+    Create a `.env` file in the project root:
     ```env
     BITBUCKET_URL=https://your-bitbucket-server.com
     BITBUCKET_TOKEN=your_personal_access_token
-    # Optional:
-    # BITBUCKET_DEFAULT_PROJECT=YOUR_PROJECT_KEY
     ```
-    Alternatively, export them in your shell session.
 
-4.  **Build the Server:**
+4.  **Build and Run the Server:**
     ```bash
     npm run build
-    ```
-
-5.  **Run the Server:**
-    ```bash
     npm start
     ```
-    The server will start, and the MCP endpoint will be available (typically on `stdio` for MCP servers run as child processes).
+
+## Usage
+
+This server supports two transport options:
+
+### StdIO Transport (Default)
+
+Communication happens through standard input/output, suitable for direct integration with AI systems that launch the server as a child process.
+
+```bash
+npm start
+```
+
+### SSE Transport
+
+Runs a persistent HTTP server with Server-Sent Events (SSE), enabling remote connections.
+
+```bash
+npm run start:sse
+```
+
+By default, the SSE server runs on port `9000`. You can customize this with the `MCP_SSE_PORT` environment variable.
 
 ## Connect to AI Assistant
 
-Configure your MCP-compatible client (e.g., an AI coding assistant) to use this server. The configuration will depend on how you are running the server.
+Configure your MCP-compatible client (e.g., an AI coding assistant) to use this server. Here is an example `mcp_config.json`:
 
-**If using Docker (as per your `mcp_config.json` example):**
 ```json
 {
   "mcpServers": {
@@ -177,30 +127,12 @@ Configure your MCP-compatible client (e.g., an AI coding assistant) to use this 
         "run", "-i", "--rm", "--network=host",
         "-e", "BITBUCKET_URL",
         "-e", "BITBUCKET_TOKEN",
-        // "-e", "BITBUCKET_DEFAULT_PROJECT", // Optional
         "mcp-bitbucket-n11:latest"
       ],
       "env": {
         "BITBUCKET_URL": "https://your-bitbucket-server.com",
         "BITBUCKET_TOKEN": "your_personal_access_token"
-        // "BITBUCKET_DEFAULT_PROJECT": "YOUR_PROJECT_KEY" // Optional
       }
-    }
-  }
-}
-```
-Ensure the `BITBUCKET_URL` and `BITBUCKET_TOKEN` in the `env` block are correctly set for your Bitbucket Server instance.
-
-**If running with Node.js directly:**
-```json
-{
-  "mcpServers": {
-    "mcp-bitbucket-n11": {
-      "command": "npm",
-      "args": ["start"],
-      "cwd": "/path/to/your/mcp-bitbucket-n11" // IMPORTANT: Set this to the project's root directory
-      // Ensure BITBUCKET_URL and BITBUCKET_TOKEN are available in the environment
-      // where this command is executed, or via the .env file in the project.
     }
   }
 }
@@ -208,49 +140,35 @@ Ensure the `BITBUCKET_URL` and `BITBUCKET_TOKEN` in the `env` block are correctl
 
 ## MCP Tools
 
-This server provides the following tools for interacting with Bitbucket Server/Data Center. Tool names are `snake_case`, and parameters are `camelCase`, defined by Zod schemas. Responses are generally Markdown formatted.
+This server provides a suite of tools for interacting with Bitbucket Server/Data Center. Below is a list of available tools:
 
--   **`bitbucket_create_pull_request`**: Creates a new Bitbucket pull request.
--   **`bitbucket_get_pull_request_details`**: Gets detailed information for a Bitbucket pull request.
--   **`bitbucket_merge_pull_request`**: Merges a Bitbucket pull request.
--   **`bitbucket_decline_pull_request`**: Declines a Bitbucket pull request.
--   **`bitbucket_add_pull_request_comment`**: Adds a general comment to a Bitbucket pull request.
--   **`bitbucket_get_pull_request_diff`**: Gets the diff for a Bitbucket pull request.
--   **`bitbucket_get_pull_request_reviews`**: Gets reviews for a Bitbucket pull request.
--   **`bitbucket_list_workspaces`**: Lists available Bitbucket workspaces. (Note: In Bitbucket Server/DC, "Projects" are the primary organizational unit in the UI. This tool may list entities that correspond to Bitbucket's concept of workspaces at the API level or could be related to projects.)
--   **`bitbucket_list_repositories`**: Lists Bitbucket repositories (typically within a project).
--   **`bitbucket_search_content`**: Searches content within Bitbucket repositories.
--   **`bitbucket_get_repository_details`**: Gets details for a specific Bitbucket repository.
--   **`bitbucket_get_file_content`**: Gets the content of a specific file from a Bitbucket repository.
--   **`bitbucket_create_branch`**: Creates a new branch in a Bitbucket repository.
--   **`bitbucket_add_pull_request_file_line_comment`**: Adds a comment to a Bitbucket pull request, optionally as an inline comment on a specific file and line.
--   **`bitbucket_list_repository_branches`**: Lists branches for a Bitbucket repository.
+- `bitbucket_create_pull_request`
+- `bitbucket_get_pull_request_details`
+- `bitbucket_merge_pull_request`
+- `bitbucket_decline_pull_request`
+- `bitbucket_add_pull_request_comment`
+- `bitbucket_get_pull_request_diff`
+- `bitbucket_get_pull_request_reviews`
+- `bitbucket_list_workspaces`
+- `bitbucket_list_repositories`
+- `bitbucket_search_content`
+- `bitbucket_get_repository_details`
+- `bitbucket_get_file_content`
+- `bitbucket_create_branch`
+- `bitbucket_add_pull_request_file_line_comment`
+- `bitbucket_list_repository_branches`
 
-Parameter details for each tool are defined by their respective Zod input schemas in the codebase (see `src/application/dtos/`).
+For detailed parameter information, refer to the Zod schemas in `src/application/dtos/`.
 
 ## Development
 
--   **Watch for changes and rebuild:**
-    ```bash
-    npm run dev
-    ```
--   **Lint code:**
-    ```bash
-    npm run lint
-    ```
--   **Run tests:**
-    ```bash
-    npm run test
-    ```
--   **Inspect MCP server (using `@modelcontextprotocol/inspector`):**
-    ```bash
-    npm run inspector
-    ```
+- **Watch for changes and rebuild:** `npm run dev`
+- **Lint code:** `npm run lint`
+- **Run tests:** `npm run test`
+- **Inspect MCP server:** `npm run inspector`
 
 ## License
 
 This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0).
 
-See the `LICENSE` file in the root directory for the full license text.
-
-Copyright 2025 n11 Elektronik Ticaret ve Bilişim Hizmetleri A.Ş.
+See the `LICENSE` file for more details.

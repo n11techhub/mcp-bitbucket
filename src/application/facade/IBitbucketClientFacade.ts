@@ -1,5 +1,5 @@
-import * as dtos from '../dtos/index.js';
-import { PullRequestParams } from '../../infrastructure/input/PullRequestParams.js';
+import * as dtos from '../../domain/contracts/schemas/index.js';
+import { PullRequestParams } from '../../domain/contracts/input/PullRequestParams.js';
 
 export interface IBitbucketClientFacade {
     createBitbucketPullRequest(input: dtos.CreatePullRequestInput): Promise<any>;

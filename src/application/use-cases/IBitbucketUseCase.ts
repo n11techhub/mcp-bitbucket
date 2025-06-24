@@ -1,4 +1,4 @@
-import * as dtos from '../dtos/index.js';
+import * as dtos from '../../domain/contracts/schemas/index.js';
 
 export interface IBitbucketUseCase {
     bitbucketCreatePullRequest(input: dtos.CreatePullRequestInput): Promise<any>;

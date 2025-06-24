@@ -1,10 +1,25 @@
 import { IBitbucketUseCase } from '../IBitbucketUseCase.js';
 import { IBitbucketClientFacade } from '../../facade/IBitbucketClientFacade.js';
-import * as dtos from '../../dtos/index.js';
-import { PullRequestParams } from '../../../infrastructure/input/PullRequestParams.js';
-import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../../infrastructure/types.js';
+import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
+import {
+    CreatePullRequestInput,
+    GetPullRequestInput,
+    MergePullRequestInput,
+    DeclinePullRequestInput,
+    AddCommentInput,
+    GetDiffInput,
+    ListWorkspacesInput,
+    ListRepositoriesInput,
+    SearchContentInput,
+    GetRepoInput,
+    GetFileInput,
+    AddBranchInput,
+    AddPrCommentInput,
+    ListBranchesInput,
+    GetUserInput
+} from '../../../domain/contracts/input/index.js';
 
 @injectable()
 export class BitbucketUseCase implements IBitbucketUseCase {
@@ -22,7 +37,7 @@ export class BitbucketUseCase implements IBitbucketUseCase {
         return projectKey;
     }
 
-    async bitbucketCreatePullRequest(input: dtos.CreatePullRequestInput): Promise<any> {
+    async bitbucketCreatePullRequest(input: CreatePullRequestInput): Promise<any> {
         const projectKey = input.project || this.bitbucketClient.getDefaultProjectKey();
         if (!projectKey) {
             throw new Error('Bitbucket project key is required and no default is set.');
@@ -34,28 +49,28 @@ export class BitbucketUseCase implements IBitbucketUseCase {
         return this.bitbucketClient.createBitbucketPullRequest(processedInput);
     }
 
-    async bitbucketGetPullRequestDetails(input: dtos.GetPullRequestInput): Promise<any> {
+    async bitbucketGetPullRequestDetails(input: GetPullRequestInput): Promise<any> {
         const project = this.resolveProjectKey(input.project);
         return this.bitbucketClient.getBitbucketPullRequestDetails({ ...input, project });
     }
 
-    async bitbucketMergePullRequest(input: dtos.MergePullRequestInput): Promise<any> {
+    async bitbucketMergePullRequest(input: MergePullRequestInput): Promise<any> {
         const project = this.resolveProjectKey(input.project);
-        const prParams: PullRequestParams = {
+        const prParams = {
             project,
             repository: input.repository,
             prId: input.prId,
         };
-        const mergeOptions: dtos.MergeOptionType = {
+        const mergeOptions = {
             message: input.message,
             strategy: input.strategy,
         };
         return this.bitbucketClient.mergeBitbucketPullRequest(prParams, mergeOptions);
     }
 
-    async bitbucketDeclinePullRequest(input: dtos.DeclinePullRequestInput): Promise<any> {
+    async bitbucketDeclinePullRequest(input: DeclinePullRequestInput): Promise<any> {
         const project = this.resolveProjectKey(input.project);
-        const prParams: PullRequestParams = {
+        const prParams = {
             project,
             repository: input.repository,
             prId: input.prId,
@@ -63,23 +78,23 @@ export class BitbucketUseCase implements IBitbucketUseCase {
         return this.bitbucketClient.declineBitbucketPullRequest(prParams, input.message);
     }
 
-    async bitbucketAddGeneralPullRequestComment(input: dtos.AddCommentInput): Promise<any> {
+    async bitbucketAddGeneralPullRequestComment(input: AddCommentInput): Promise<any> {
         const project = this.resolveProjectKey(input.project);
-         const prParams: PullRequestParams = {
+        const prParams = {
             project,
             repository: input.repository,
             prId: input.prId,
         };
-        const commentOptions: dtos.CommentOptionType = {
+        const commentOptions = {
             text: input.text,
             parentId: input.parentId,
         };
         return this.bitbucketClient.addBitbucketGeneralPullRequestComment(prParams, commentOptions);
     }
 
-    async bitbucketGetPullRequestDiff(input: dtos.GetDiffInput): Promise<any> {
+    async bitbucketGetPullRequestDiff(input: GetDiffInput): Promise<any> {
         const project = this.resolveProjectKey(input.project);
-        const prParams: PullRequestParams = {
+        const prParams = {
             project,
             repository: input.repository,
             prId: input.prId,
@@ -87,9 +102,9 @@ export class BitbucketUseCase implements IBitbucketUseCase {
         return this.bitbucketClient.getBitbucketPullRequestDiff(prParams, input.contextLines);
     }
 
-    async bitbucketGetPullRequestReviews(input: dtos.GetPullRequestInput): Promise<any> {
+    async bitbucketGetPullRequestReviews(input: GetPullRequestInput): Promise<any> {
         const project = this.resolveProjectKey(input.project);
-         const prParams: PullRequestParams = {
+        const prParams = {
             project,
             repository: input.repository,
             prId: input.prId,
@@ -97,39 +112,39 @@ export class BitbucketUseCase implements IBitbucketUseCase {
         return this.bitbucketClient.getBitbucketPullRequestReviews(prParams);
     }
 
-    async bitbucketListWorkspaces(input: dtos.ListWorkspacesInputType): Promise<any> {
+    async bitbucketListWorkspaces(input: ListWorkspacesInput): Promise<any> {
         return this.bitbucketClient.listBitbucketWorkspaces(input);
     }
 
-    async bitbucketListRepositories(input: dtos.ListRepositoriesInputType): Promise<any> {
+    async bitbucketListRepositories(input: ListRepositoriesInput): Promise<any> {
         return this.bitbucketClient.listBitbucketRepositories(input);
     }
 
-    async bitbucketSearchContent(input: dtos.SearchContentInputType): Promise<any> {
+    async bitbucketSearchContent(input: SearchContentInput): Promise<any> {
         return this.bitbucketClient.searchBitbucketContent(input);
     }
 
-    async bitbucketGetRepositoryDetails(input: dtos.GetRepoInputType): Promise<any> {
+    async bitbucketGetRepositoryDetails(input: GetRepoInput): Promise<any> {
         return this.bitbucketClient.getBitbucketRepositoryDetails(input);
     }
 
-    async bitbucketGetFileContent(input: dtos.GetFileInputType): Promise<any> {
+    async bitbucketGetFileContent(input: GetFileInput): Promise<any> {
         return this.bitbucketClient.getBitbucketFileContent(input);
     }
 
-    async bitbucketCreateBranch(input: dtos.AddBranchInputType): Promise<any> {
+    async bitbucketCreateBranch(input: AddBranchInput): Promise<any> {
         return this.bitbucketClient.createBitbucketBranch(input);
     }
 
-    async bitbucketAddPullRequestFileLineComment(input: dtos.AddPrCommentInputType): Promise<any> {
+    async bitbucketAddPullRequestFileLineComment(input: AddPrCommentInput): Promise<any> {
         return this.bitbucketClient.addBitbucketPullRequestFileLineComment(input);
     }
 
-    async bitbucketListRepositoryBranches(input: dtos.ListBranchesInputType): Promise<any> {
+    async bitbucketListRepositoryBranches(input: ListBranchesInput): Promise<any> {
         return this.bitbucketClient.listBitbucketRepositoryBranches(input);
     }
 
-    async bitbucketGetUserDetails(input: dtos.GetUserInputType): Promise<any> {
+    async bitbucketGetUserDetails(input: GetUserInput): Promise<any> {
         return this.bitbucketClient.getBitbucketUserDetails(input);
     }
 }

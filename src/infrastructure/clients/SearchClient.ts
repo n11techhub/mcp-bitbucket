@@ -1,10 +1,10 @@
 import axios, { AxiosInstance } from "axios";
 import { BitbucketConfig } from "../config/BitbucketConfig.js";
-import { SearchContentInput } from "../input/SearchContentInput.js";
 import { injectable, inject } from 'inversify';
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import winston from 'winston';
-import { ISearchClient } from '../../application/ports/ISearchClient.js';
+import { SearchContentInput } from '../../domain/contracts/input/SearchContentInput.js';
+import { ISearchClient } from '../../domain/repository/ISearchClient.js';
 import { TYPES } from '../types.js';
 
 @injectable()

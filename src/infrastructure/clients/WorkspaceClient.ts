@@ -1,10 +1,10 @@
 import axios, { AxiosInstance } from "axios";
 import { BitbucketConfig } from "../config/BitbucketConfig.js";
-import { ListWorkspacesInput } from "../input/ListWorkspacesInput.js";
 import { injectable, inject } from 'inversify';
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import winston from 'winston';
-import { IWorkspaceClient } from '../../application/ports/IWorkspaceClient.js';
+import { ListWorkspacesInput } from '../../domain/contracts/input/ListWorkspacesInput.js';
+import { IWorkspaceClient } from '../../domain/repository/IWorkspaceClient.js';
 import { TYPES } from '../types.js';
 
 @injectable()

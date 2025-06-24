@@ -17,8 +17,8 @@ async function startStdioServer(logger: winston.Logger, mcpServerSetup: McpServe
         const transport = new StdioServerTransport();
         await mcpServerSetup.server.connect(transport);
         logger.info('Bitbucket MCP server running on stdio');
-    } catch (error: any) {
-        logger.error('Failed to start stdio server', {message: error.message, stack: error.stack});
+    } catch (error) {
+        logger.error('Failed to start stdio server', {message: (error as Error).message, stack: (error as Error).stack});
         throw error;
     }
 }
@@ -34,8 +34,8 @@ async function startHttpServer(logger: winston.Logger, mcpHttpServer: McpHttpSer
 
         await mcpHttpServer.start();
         logger.info(`Bitbucket MCP server running on HTTP streaming transport (port ${port}, endpoint ${endpoint})`);
-    } catch (error: any) {
-        logger.error('Failed to start HTTP streaming server', {message: error.message, stack: error.stack});
+    } catch (error) {
+        logger.error('Failed to start HTTP streaming server', {message: (error as Error).message, stack: (error as Error).stack});
         throw error;
     }
 }
@@ -56,9 +56,9 @@ async function main() {
 
         setupProcessHandlers(logger);
 
-        return 'MCP server started successfully';
-    } catch (error: any) {
-        logger.error('Application startup error', {message: error.message, stack: error.stack});
+        logger.info('MCP server started successfully');
+    } catch (error) {
+        logger.error('Application startup error', {message: (error as Error).message, stack: (error as Error).stack});
         process.exit(1);
     }
 }
@@ -75,10 +75,10 @@ function setupProcessHandlers(logger: winston.Logger): void {
             }
 
             logger.info('Shutdown complete');
-        } catch (error: any) {
+        } catch (error) {
             logger.error('Error during shutdown', {
-                message: error.message,
-                stack: error.stack
+                message: (error as Error).message,
+                stack: (error as Error).stack
             });
         } finally {
             setTimeout(() => process.exit(0), 1000);
@@ -93,4 +93,4 @@ function setupProcessHandlers(logger: winston.Logger): void {
     });
 }
 
-main().then(r => console.log(r)).catch(e => console.error(e));
+main();
