@@ -1,8 +1,8 @@
 import { IBitbucketUseCase } from '../IBitbucketUseCase.js';
 import { IBitbucketClientFacade } from '../../facade/IBitbucketClientFacade.js';
 import * as dtos from '../../dtos/index.js';
-import { PullRequestParams } from '../../../infrastructure/input/PullRequestParams.js'; // Still referencing infra type
-import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js'; // For error handling
+import { PullRequestParams } from '../../../infrastructure/input/PullRequestParams.js';
+import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../../infrastructure/types.js';
 

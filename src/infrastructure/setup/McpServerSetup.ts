@@ -1,32 +1,44 @@
-import { GetRepoInputSchema, GetRepoInputType } from "../../application/dtos/GetRepoInputSchema.js";
-import { GetFileInputSchema, GetFileInputType } from "../../application/dtos/GetFileInputSchema.js";
-import { AddBranchInputSchema, AddBranchInputType } from "../../application/dtos/AddBranchInputSchema.js";
-import { AddPrCommentInputSchema, AddPrCommentInputType } from "../../application/dtos/AddPrCommentInputSchema.js";
-import { ListBranchesInputSchema, ListBranchesInputType } from "../../application/dtos/ListBranchesInputSchema.js";
-import { CreatePullRequestInputSchema, CreatePullRequestInput } from '../../application/dtos/CreatePullRequestInputSchema.js';
-import { GetPullRequestInputSchema, GetPullRequestInput } from '../../application/dtos/GetPullRequestInputSchema.js';
-import { MergePullRequestInputSchema, MergePullRequestInput } from '../../application/dtos/MergePullRequestInputSchema.js';
-import { DeclinePullRequestInputSchema, DeclinePullRequestInput } from '../../application/dtos/DeclinePullRequestInputSchema.js';
-import { AddCommentInputSchema, AddCommentInput } from '../../application/dtos/AddCommentInputSchema.js';
-import { zodToJsonSchema } from 'zod-to-json-schema';
-import { GetDiffInputSchema, GetDiffInput } from '../../application/dtos/GetDiffInputSchema.js';
-import { ListWorkspacesInputSchema, ListWorkspacesInputType } from '../../application/dtos/ListWorkspacesInputSchema.js';
-import { ListRepositoriesInputSchema, ListRepositoriesInputType } from '../../application/dtos/ListRepositoriesInputSchema.js';
-import { SearchContentInputSchema, SearchContentInputType } from '../../application/dtos/SearchContentInputSchema.js';
-import { GetUserInputSchema, GetUserInputType } from '../../application/dtos/GetUserInputSchema.js';
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from "@modelcontextprotocol/sdk/types.js";
-import { IBitbucketClientFacade } from "../../application/facade/IBitbucketClientFacade.js";
-import { IBitbucketUseCase } from '../../application/use-cases/IBitbucketUseCase.js';
+import {GetRepoInputSchema, GetRepoInputType} from "../../application/dtos/GetRepoInputSchema.js";
+import {GetFileInputSchema, GetFileInputType} from "../../application/dtos/GetFileInputSchema.js";
+import {AddBranchInputSchema, AddBranchInputType} from "../../application/dtos/AddBranchInputSchema.js";
+import {AddPrCommentInputSchema, AddPrCommentInputType} from "../../application/dtos/AddPrCommentInputSchema.js";
+import {ListBranchesInputSchema, ListBranchesInputType} from "../../application/dtos/ListBranchesInputSchema.js";
+import {
+    CreatePullRequestInputSchema,
+    CreatePullRequestInput
+} from '../../application/dtos/CreatePullRequestInputSchema.js';
+import {GetPullRequestInputSchema, GetPullRequestInput} from '../../application/dtos/GetPullRequestInputSchema.js';
+import {
+    MergePullRequestInputSchema,
+    MergePullRequestInput
+} from '../../application/dtos/MergePullRequestInputSchema.js';
+import {
+    DeclinePullRequestInputSchema,
+    DeclinePullRequestInput
+} from '../../application/dtos/DeclinePullRequestInputSchema.js';
+import {AddCommentInputSchema, AddCommentInput} from '../../application/dtos/AddCommentInputSchema.js';
+import {zodToJsonSchema} from 'zod-to-json-schema';
+import {GetDiffInputSchema, GetDiffInput} from '../../application/dtos/GetDiffInputSchema.js';
+import {ListWorkspacesInputSchema, ListWorkspacesInputType} from '../../application/dtos/ListWorkspacesInputSchema.js';
+import {
+    ListRepositoriesInputSchema,
+    ListRepositoriesInputType
+} from '../../application/dtos/ListRepositoriesInputSchema.js';
+import {SearchContentInputSchema, SearchContentInputType} from '../../application/dtos/SearchContentInputSchema.js';
+import {GetUserInputSchema, GetUserInputType} from '../../application/dtos/GetUserInputSchema.js';
+import {Server} from "@modelcontextprotocol/sdk/server/index.js";
+import {CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError} from "@modelcontextprotocol/sdk/types.js";
+import {IBitbucketClientFacade} from "../../application/facade/IBitbucketClientFacade.js";
+import {IBitbucketUseCase} from '../../application/use-cases/IBitbucketUseCase.js';
 import axios from "axios";
 import winston from 'winston';
-import { injectable, inject } from 'inversify';
-import { TYPES } from '../types.js';
+import {injectable, inject} from 'inversify';
+import {TYPES} from '../types.js';
 
 interface ToolDefinitionExtended {
     name: string;
     description: string;
-    inputSchema: any; // Using 'any' as zodToJsonSchema returns this type
+    inputSchema: any;
     handler: (params: any) => Promise<any>;
 }
 
@@ -165,16 +177,12 @@ export class McpServerSetup {
         );
 
         this.setupToolHandlers();
-        this.server.onerror = (error: any) => this.logger.error('[MCP Error]', error instanceof Error ? error.message : String(error), error instanceof Error ? { stack: error.stack } : {});
+        this.server.onerror = (error: any) => this.logger.error('[MCP Error]', error instanceof Error ? error.message : String(error), error instanceof Error ? {stack: error.stack} : {});
     }
 
-    /**
-     * Call a specific tool by name with the given parameters
-     * Used by the SSE transport to handle tool calls directly
-     */
     public async callTool(toolName: string, toolParams: any): Promise<any> {
         try {
-            this.logger.info(`[callTool] Calling tool ${toolName}`, { params: toolParams });
+            this.logger.info(`[callTool] Calling tool ${toolName}`, {params: toolParams});
             const handler = this.toolHandlers.get(toolName);
 
             if (!handler) {
@@ -185,7 +193,7 @@ export class McpServerSetup {
             const result = await handler(toolParams);
             return result;
         } catch (error) {
-            this.logger.error('[callTool] Tool execution error', { error });
+            this.logger.error('[callTool] Tool execution error', {error});
             if (error instanceof McpError) {
                 throw error;
             }
@@ -199,12 +207,8 @@ export class McpServerSetup {
         }
     }
 
-    /**
-     * Returns a list of available tools with their schemas
-     * This method is used by the HTTP transport to handle tools/list requests
-     */
     public getAvailableTools(): any[] {
-        return this.definedTools.map(({ name, description, inputSchema }) => ({
+        return this.definedTools.map(({name, description, inputSchema}) => ({
             name,
             description,
             inputSchema
@@ -231,14 +235,13 @@ export class McpServerSetup {
                     );
                 }
             } catch (error) {
-                this.logger.error('[CallToolRequestSchema] Tool execution error', { error });
+                this.logger.error('[CallToolRequestSchema] Tool execution error', {error});
                 if (axios.isAxiosError(error)) {
                     throw new McpError(
                         ErrorCode.InternalError,
                         `Bitbucket API error: ${error.response?.data.message ?? error.message}`
                     );
                 }
-                // If it's already an McpError, rethrow it, otherwise wrap it.
                 if (error instanceof McpError) {
                     throw error;
                 }
