@@ -3,17 +3,10 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import winston from 'winston';
 import { container } from './inversify.config.js';
 import { McpServerSetup } from './setup/McpServerSetup.js';
-import { McpSseServer } from './sse/McpSseServer.js';
 import { McpHttpServer } from './http/McpHttpServer.js';
 import { TYPES } from './types.js';
 
-/**
- * Determines if SSE transport should be enabled based on environment variables
- */
-function shouldEnableSSE(): boolean {
-    const enableSse = process.env.ENABLE_SSE_TRANSPORT;
-    return enableSse === '1' || enableSse === 'true' || enableSse === 'yes';
-}
+
 
 /**
  * Determines if HTTP streaming transport should be enabled based on environment variables
@@ -39,24 +32,7 @@ async function startStdioServer(logger: winston.Logger, mcpServerSetup: McpServe
     }
 }
 
-/**
- * Starts the MCP server with SSE transport
- */
-async function startSseServer(logger: winston.Logger, mcpSseServer: McpSseServer): Promise<void> {
-    try {
-        logger.info('Starting MCP server with SSE transport');
-        // Get port from environment variable or use default
-        const port = process.env.MCP_SSE_PORT ? parseInt(process.env.MCP_SSE_PORT, 10) : 9000;
-        mcpSseServer.setPort(port);
-        
-        // Start the SSE server
-        await mcpSseServer.start();
-        logger.info(`Bitbucket MCP server running on SSE transport (port ${port})`);
-    } catch (error: any) {
-        logger.error('Failed to start SSE server', { message: error.message, stack: error.stack });
-        throw error; // Re-throw to be handled by the main function
-    }
-}
+
 
 /**
  * Starts the MCP server with HTTP streaming transport
@@ -94,11 +70,6 @@ async function main() {
             const mcpHttpServer = container.get<McpHttpServer>(TYPES.McpHttpServer);
             await startHttpServer(logger, mcpHttpServer);
             logger.info('HTTP streaming transport enabled');
-        } else if (shouldEnableSSE()) {
-            // Start SSE transport
-            const mcpSseServer = container.get<McpSseServer>(TYPES.McpSseServer);
-            await startSseServer(logger, mcpSseServer);
-            logger.info('SSE transport enabled');
         } else {
             // Default to stdio transport
             await startStdioServer(logger, mcpServerSetup);
@@ -127,10 +98,6 @@ function setupProcessHandlers(logger: winston.Logger): void {
                 const mcpHttpServer = container.get<McpHttpServer>(TYPES.McpHttpServer);
                 logger.info('Shutting down HTTP server...');
                 await mcpHttpServer.stop();
-            } else if (shouldEnableSSE()) {
-                const mcpSseServer = container.get<McpSseServer>(TYPES.McpSseServer);
-                logger.info('Shutting down SSE server...');
-                await mcpSseServer.stop();
             }
             
             logger.info('Shutdown complete');

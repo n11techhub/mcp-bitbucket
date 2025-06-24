@@ -25,8 +25,6 @@ import { BitbucketUseCase } from '../application/use-cases/impl/BitbucketUseCase
 
 // MCP Server Setup
 import { McpServerSetup } from './setup/McpServerSetup.js';
-import { McpSseTransport } from './sse/McpSseTransport.js';
-import { McpSseServer } from './sse/McpSseServer.js';
 import { McpHttpServer } from './http/McpHttpServer.js';
 
 const container = new Container();
@@ -64,10 +62,6 @@ container.bind(TYPES.Server).toDynamicValue((context) => {
     const mcpServerSetup = container.get<McpServerSetup>(TYPES.McpServerSetup);
     return mcpServerSetup.server;
 });
-
-// SSE Components
-container.bind<McpSseTransport>(TYPES.McpSseTransport).to(McpSseTransport).inSingletonScope();
-container.bind<McpSseServer>(TYPES.McpSseServer).to(McpSseServer).inSingletonScope();
 
 // HTTP Streaming Components
 container.bind<McpHttpServer>(TYPES.McpHttpServer).to(McpHttpServer).inSingletonScope();
