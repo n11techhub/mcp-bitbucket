@@ -46,7 +46,7 @@ export class UserClient implements IUserClient {
                 content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
             };
         } catch (error: any) {
-            this.logger.error(`Error fetching Bitbucket user details for userSlug ${userSlug}: ${error.response?.data?.errors?.[0]?.message || error.response?.data?.message || error.message}`, error.stack);
+            this.logger.error(`Error fetching Bitbucket user details for userSlug ${userSlug}: ${(error.response?.data?.errors?.[0]?.message ?? error.response?.data?.message) ?? error.message}`, error.stack);
             if (axios.isAxiosError(error) && error.response) {
                 const apiErrorMessage = error.response.data?.errors?.[0]?.message ?? error.response.data?.message ?? `Status ${error.response.status}`;
                 throw new McpError(

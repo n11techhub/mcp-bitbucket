@@ -27,7 +27,10 @@ async function startHttpServer(logger: winston.Logger, mcpHttpServer: McpHttpSer
     try {
         logger.info('Starting MCP server with HTTP streaming transport');
         const port = process.env.MCP_HTTP_PORT ? parseInt(process.env.MCP_HTTP_PORT, 10) : 3001;
-        const endpoint = process.env.MCP_HTTP_ENDPOINT || '/stream';
+        let endpoint = process.env.MCP_HTTP_ENDPOINT ?? '/stream';
+        if (!endpoint.startsWith('/')) {
+            endpoint = `/${endpoint}`;
+        }
 
         mcpHttpServer.setPort(port);
         mcpHttpServer.setEndpoint(endpoint);
@@ -66,7 +69,7 @@ async function main() {
 function setupProcessHandlers(logger: winston.Logger): void {
     const handleExit = async () => {
         logger.info('Received termination signal. Shutting down...');
-
+        let exitCode = 0;
         try {
             if (shouldEnableHTTP()) {
                 const mcpHttpServer = container.get<McpHttpServer>(TYPES.McpHttpServer);
@@ -80,8 +83,10 @@ function setupProcessHandlers(logger: winston.Logger): void {
                 message: (error as Error).message,
                 stack: (error as Error).stack
             });
+            exitCode = 1;
         } finally {
-            setTimeout(() => process.exit(0), 1000);
+            logger.info(`Exiting with code ${exitCode}`);
+            process.exit(exitCode);
         }
     };
 

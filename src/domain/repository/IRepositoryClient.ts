@@ -1,4 +1,3 @@
-import { RepositoryInput } from '../contracts/input/RepositoryInput.js';
 import { ListRepositoriesInput } from '../contracts/input/ListRepositoriesInput.js';
 import { ListBranchesInput } from '../contracts/input/ListBranchesInput.js';
 import { AddBranchInput } from '../contracts/input/AddBranchInput.js';

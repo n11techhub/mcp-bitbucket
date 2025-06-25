@@ -1,151 +1,158 @@
 import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 
-const { combine, timestamp, printf, colorize, errors, json } = winston.format;
+const {combine, timestamp, printf, colorize, errors, json} = winston.format;
 
-const consoleLogFormat = printf(({ level, message, timestamp: ts, service, stack }) => {
-  return `${ts} [${service}] ${level}: ${stack || message}`;
+function safeToString(value: any): string {
+    if (value === null || value === undefined) {
+        return String(value);
+    }
+    
+    const stringValue = value.toString();
+    
+    if (stringValue === '[object Object]') {
+        try {
+            return JSON.stringify(value);
+        } catch {
+            return '[Circular or Non-serializable Object]';
+        }
+    }
+    
+    return stringValue;
+}
+
+const consoleLogFormat = printf(({level, message, timestamp: ts, service, stack}) => {
+    const logMessage = stack ?? safeToString(message);
+    const serviceName = safeToString(service);
+    return `${ts} [${serviceName}] ${level}: ${logMessage}`;
 });
-const initialMetaUrl = import.meta.url;
-console.info(`[Logger] Diagnostic: Initial import.meta.url: ${initialMetaUrl}`);
 
-const initialFilename = fileURLToPath(initialMetaUrl);
-console.info(`[Logger] Diagnostic: Initial __filename (from import.meta.url): ${initialFilename}`);
-
-let currentModuleDir = path.dirname(initialFilename);
-console.info(`[Logger] Diagnostic: currentModuleDir (from initial __filename): ${currentModuleDir}`);
-
-let projectRootSearchPath = currentModuleDir;
-let resolvedProjectRoot = null;
-console.info(`[Logger] Diagnostic: Starting package.json search from: ${projectRootSearchPath}`);
-
-for (let i = 0; i < 10; i++) {
-    console.info(`[Logger] Diagnostic: Search iteration ${i}, current projectRootSearchPath: ${projectRootSearchPath}`);
-    const packageJsonPath = path.join(projectRootSearchPath, 'package.json');
-    if (fs.existsSync(packageJsonPath)) {
-        console.info(`[Logger] Diagnostic: Found package.json at: ${packageJsonPath}`);
-        resolvedProjectRoot = projectRootSearchPath;
-        break;
-    } else {
-        console.info(`[Logger] Diagnostic: package.json not found at: ${packageJsonPath}`);
+function findProjectRoot(): string {
+    if (process.env.PROJECT_ROOT) {
+        return process.env.PROJECT_ROOT;
     }
-    const parentDir = path.dirname(projectRootSearchPath);
-    if (parentDir === projectRootSearchPath) { 
-        console.info(`[Logger] Diagnostic: Reached filesystem root or an unresolvable path: ${parentDir}. Stopping search.`);
-        break;
+    let currentDir = path.dirname(fileURLToPath(import.meta.url));
+    for (let i = 0; i < 10; i++) { // Limit search depth to 10 levels
+        const packageJsonPath = path.join(currentDir, 'package.json');
+        if (fs.existsSync(packageJsonPath)) {
+            return currentDir;
+        }
+        const parentDir = path.dirname(currentDir);
+        if (parentDir === currentDir) {
+            break;
+        }
+        currentDir = parentDir;
     }
-    projectRootSearchPath = parentDir;
+    const fallbackPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+    console.warn(`[Logger] Project root not found. Falling back to ${fallbackPath}. Consider setting the PROJECT_ROOT environment variable.`);
+    return fallbackPath;
 }
 
-if (!resolvedProjectRoot) {
-    console.warn(`[Logger] Could not find package.json by traversing up from ${currentModuleDir}.`);
-    console.info(`[Logger] Diagnostic: Falling back to relative path assumption for project root using currentModuleDir: ${currentModuleDir}`);
-    resolvedProjectRoot = path.resolve(currentModuleDir, '..', '..', '..'); 
-    console.info(`[Logger] Diagnostic: Fallback resolvedProjectRoot: ${resolvedProjectRoot}`);
-} else {
-    console.info(`[Logger] Diagnostic: Final resolvedProjectRoot from package.json search: ${resolvedProjectRoot}`);
-}
-
-const logDir = path.join(resolvedProjectRoot, 'logs');
-console.info(`[Logger] Final logDir set to: ${logDir}`);
+const projectRoot = findProjectRoot();
+const logDir = path.join(projectRoot, 'logs');
 
 if (!fs.existsSync(logDir)) {
-  try {
-    fs.mkdirSync(logDir, { recursive: true });
-  } catch (error) {
-    console.error(`[Logger] Failed to create log directory: ${logDir}`, error);
-  }
+    try {
+        fs.mkdirSync(logDir, {recursive: true});
+    } catch (error) {
+        console.error(`[Logger] Failed to create log directory: ${logDir}`, error);
+    }
 }
 
-let logger: winston.Logger;
-
-try {
-  logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: combine(
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    errors({ stack: true }),
-    json()
-  ),
-  defaultMeta: { service: 'mcp-bitbucket-n11' },
-  transports: [
-    new winston.transports.File({ 
-      filename: path.join(logDir, 'combined.log'),
-      format: combine(
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        errors({ stack: true }),
-        json()
-      )
-    }),
-    new winston.transports.File({ 
-      filename: path.join(logDir, 'error.log'), 
-      level: 'error',
-      format: combine(
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        errors({ stack: true }),
-        json()
-      )
-    }),
-  ],
-  exceptionHandlers: [
-    new winston.transports.File({ 
-      filename: path.join(logDir, 'exceptions.log'),
-      format: combine(
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        errors({ stack: true }),
-        json()
-      )
-    })
-  ],
-  rejectionHandlers: [
-    new winston.transports.File({ 
-      filename: path.join(logDir, 'rejections.log'),
-      format: combine(
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        errors({ stack: true }),
-        json()
-      )
-    })
-  ]
-});
-} catch (error: any) {
-  console.error('[Logger] CRITICAL ERROR DURING WINSTON FILE LOGGER INITIALIZATION:', error.message, error.stack);
-  logger = winston.createLogger({
-    level: 'debug',
-    format: combine(
-      colorize(),
-      timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-      printf(({ level, message, timestamp: ts, service, stack }) => {
-        return `${ts} [${service || 'fallback-logger'}] ${level}: ${stack || message}`;
-      })
-    ),
-    transports: [new winston.transports.Console()],
-    defaultMeta: { service: 'mcp-bitbucket-n11-fallback' },
-  });
-  logger.error('[Logger] Winston file logging failed to initialize. Falling back to console-only logging.');
+function initializeLogger(): winston.Logger {
+    try {
+        return winston.createLogger({
+            level: process.env.LOG_LEVEL ?? 'info',
+            format: combine(
+                timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+                errors({stack: true}),
+                json()
+            ),
+            defaultMeta: {service: 'mcp-bitbucket-n11'},
+            transports: [
+                new winston.transports.File({
+                    filename: path.join(logDir, 'combined.log'),
+                    format: combine(
+                        timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+                        errors({stack: true}),
+                        json()
+                    )
+                }),
+                new winston.transports.File({
+                    filename: path.join(logDir, 'error.log'),
+                    level: 'error',
+                    format: combine(
+                        timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+                        errors({stack: true}),
+                        json()
+                    )
+                }),
+            ],
+            exceptionHandlers: [
+                new winston.transports.File({
+                    filename: path.join(logDir, 'exceptions.log'),
+                    format: combine(
+                        timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+                        errors({stack: true}),
+                        json()
+                    )
+                })
+            ],
+            rejectionHandlers: [
+                new winston.transports.File({
+                    filename: path.join(logDir, 'rejections.log'),
+                    format: combine(
+                        timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+                        errors({stack: true}),
+                        json()
+                    )
+                })
+            ]
+        });
+    } catch (error: any) {
+        console.error('[Logger] CRITICAL ERROR DURING WINSTON FILE LOGGER INITIALIZATION:', error.message, error.stack);
+        const fallbackLogger = winston.createLogger({
+            level: 'debug',
+            format: combine(
+                colorize(),
+                timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+                printf(({level, message, timestamp: ts, service, stack}) => {
+                    const logMessage = stack ?? safeToString(message);
+                    const serviceName = safeToString(service);
+                    return `${ts} [${serviceName ?? 'fallback-logger'}] ${level}: ${logMessage}`;
+                })
+            ),
+            transports: [new winston.transports.Console()],
+            defaultMeta: {service: 'mcp-bitbucket-n11-fallback'},
+        });
+        fallbackLogger.error('[Logger] Winston file logging failed to initialize. Falling back to console-only logging.');
+        return fallbackLogger;
+    }
 }
+
+const logger: winston.Logger = initializeLogger();
 
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: combine(
-      colorize(),
-      timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-      errors({ stack: true }),
-      consoleLogFormat
-    ),
-    level: 'debug',
-  }));
+    logger.add(new winston.transports.Console({
+        format: combine(
+            colorize(),
+            timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+            errors({stack: true}),
+            consoleLogFormat
+        ),
+        level: 'debug',
+    }));
 } else {
-  logger.add(new winston.transports.Console({
-    format: combine(
-      timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-      errors({ stack: true }),
-      consoleLogFormat
-    ),
-    level: 'info',
-  }));
+    logger.add(new winston.transports.Console({
+        format: combine(
+            timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+            errors({stack: true}),
+            consoleLogFormat
+        ),
+        level: 'info',
+    }));
 }
 
 export default logger;

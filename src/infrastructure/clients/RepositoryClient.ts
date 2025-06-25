@@ -34,7 +34,7 @@ export class RepositoryClient implements IRepositoryClient {
 
     public async listBitbucketRepositories(input: ListRepositoriesInput = {}): Promise<any> {
         const { workspaceSlug, query, role } = input;
-        const projectKey = workspaceSlug || this.getDefaultProjectKey();
+        const projectKey = workspaceSlug ?? this.getDefaultProjectKey();
 
         if (!projectKey) {
             throw new McpError(
@@ -58,7 +58,7 @@ export class RepositoryClient implements IRepositoryClient {
                 content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
             };
         } catch (error: any) {
-            this.logger.error(`Error listing repositories (projectKey: ${projectKey}):`, error.response?.data || error.message);
+            this.logger.error(`Error listing repositories (projectKey: ${projectKey}):`, error.response?.data ?? error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(
@@ -92,7 +92,7 @@ export class RepositoryClient implements IRepositoryClient {
                 content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
             };
         } catch (error: any) {
-            this.logger.error(`Error listing branches (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data || error.message);
+            this.logger.error(`Error listing branches (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data ?? error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(
@@ -114,14 +114,14 @@ export class RepositoryClient implements IRepositoryClient {
                 `/projects/${projectKey}/repos/${repoSlug}/branches`,
                 {
                     name: newBranchName,
-                    startPoint: sourceBranchOrCommit || 'main' // Default to main if not specified
+                    startPoint: sourceBranchOrCommit ?? 'main' // Default to main if not specified
                 }
             );
             return {
                 content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
             };
         } catch (error: any) {
-            this.logger.error(`Error creating branch (projectKey: ${projectKey}, repoSlug: ${repoSlug}, newBranchName: ${newBranchName}, source: ${sourceBranchOrCommit}):`, error.response?.data || error.message);
+            this.logger.error(`Error creating branch (projectKey: ${projectKey}, repoSlug: ${repoSlug}, newBranchName: ${newBranchName}, source: ${sourceBranchOrCommit}):`, error.response?.data ?? error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(
@@ -150,7 +150,7 @@ export class RepositoryClient implements IRepositoryClient {
                 content: [{ type: 'text', text: response.data }] // response.data should be the raw file content as string
             };
         } catch (error: any) {
-            this.logger.error(`Error getting file content (projectKey: ${projectKey}, repoSlug: ${repoSlug}, filePath: ${filePath}, revision: ${revision}):`, error.response?.data || error.message);
+            this.logger.error(`Error getting file content (projectKey: ${projectKey}, repoSlug: ${repoSlug}, filePath: ${filePath}, revision: ${revision}):`, error.response?.data ?? error.message);
             if (axios.isAxiosError(error) && error.response) {
                 let errorMessage = error.message;
                 if (typeof error.response.data === 'string') {
@@ -181,7 +181,7 @@ export class RepositoryClient implements IRepositoryClient {
                 content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
             };
         } catch (error: any) {
-            this.logger.error(`Error getting repository (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data || error.message);
+            this.logger.error(`Error getting repository (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data ?? error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(

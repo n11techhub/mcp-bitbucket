@@ -157,8 +157,8 @@ export class PullRequestClient implements IPullRequestClient {
         if (inline) {
             payload.anchor = {
                 line: inline.line,
-                lineType: inline.lineType || 'CONTEXT',
-                fileType: inline.fileType || 'TO',
+                lineType: inline.lineType ?? 'CONTEXT',
+                fileType: inline.fileType ?? 'TO',
                 path: inline.path,
             };
         }
@@ -173,7 +173,7 @@ export class PullRequestClient implements IPullRequestClient {
                 content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
             };
         } catch (error: any) {
-            this.logger.error(`Error adding PR comment (projectKey: ${projectKey}, repoSlug: ${repoSlug}, prId: ${prId}):`, error.response?.data || error.message);
+            this.logger.error(`Error adding PR comment (projectKey: ${projectKey}, repoSlug: ${repoSlug}, prId: ${prId}):`, error.response?.data ?? error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(

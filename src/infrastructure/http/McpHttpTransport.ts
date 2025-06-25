@@ -5,8 +5,11 @@ import winston from 'winston';
 
 export interface Transport {
     request?: (request: any) => Promise<any>;
+
     start(): Promise<void>;
+
     send(data: any): Promise<void>;
+
     close(): Promise<void>;
 }
 
@@ -32,7 +35,7 @@ export class McpHttpTransport implements Transport {
     }
 
     public async start(): Promise<void> {
-                this.app.use(helmet());
+        this.app.use(helmet());
         this.app.use(cors());
         this.app.use(express.json());
 
@@ -47,15 +50,23 @@ export class McpHttpTransport implements Transport {
                 }
 
                 const body = req.body;
+                const headers = req.headers;
                 this.logger.debug('Received POST request', {method: body.method});
-                const response = await this.requestHandler(body);
+                const response = await this.requestHandler(body, headers);
+                
+                // If response is null (e.g., for invalid notifications), send 204 No Content
+                if (response === null) {
+                    res.status(204).end();
+                    return;
+                }
+                
                 res.json(response);
             } catch (error: any) {
                 this.logger.error('Error handling POST request', {error: error.message});
                 res.status(500).json({
                     error: {
                         code: -32000,
-                        message: error.message || 'Internal server error'
+                        message: error.message ?? 'Internal server error'
                     }
                 });
             }
@@ -148,7 +159,7 @@ export class McpHttpTransport implements Transport {
                 this.httpServer.close((err: any) => {
                     if (err) {
                         this.logger.error('Error closing HTTP server', {error: err.message});
-                        reject(err);
+                        reject(err instanceof Error ? err : new Error(String(err)));
                     } else {
                         this.logger.info('HTTP server closed');
                         resolve();

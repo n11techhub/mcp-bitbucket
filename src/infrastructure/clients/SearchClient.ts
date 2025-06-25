@@ -68,7 +68,7 @@ export class SearchClient implements ISearchClient {
                 content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
             };
         } catch (error: any) {
-            this.logger.error(`Error searching content (projectKey: ${projectKey}, query: ${query}):`, error.response?.data || error.message);
+            this.logger.error(`Error searching content (projectKey: ${projectKey}, query: ${query}):`, error.response?.data ?? error.message);
             if (axios.isAxiosError(error) && error.response) {
                 const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
                 throw new McpError(
