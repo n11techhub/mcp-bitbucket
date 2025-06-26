@@ -70,7 +70,7 @@ function initializeLogger(): winston.Logger {
                 errors({stack: true}),
                 json()
             ),
-            defaultMeta: {service: 'mcp-bitbucket-n11'},
+            defaultMeta: {service: 'mcp-bitbucket'},
             transports: [
                 new winston.transports.File({
                     filename: path.join(logDir, 'combined.log'),
@@ -125,7 +125,7 @@ function initializeLogger(): winston.Logger {
                 })
             ),
             transports: [new winston.transports.Console()],
-            defaultMeta: {service: 'mcp-bitbucket-n11-fallback'},
+            defaultMeta: {service: 'mcp-bitbucket-fallback'},
         });
         fallbackLogger.error('[Logger] Winston file logging failed to initialize. Falling back to console-only logging.');
         return fallbackLogger;

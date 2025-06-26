@@ -1,5 +1,5 @@
 {
-  "name": "mcp-bitbucket-n11",
+  "name": "mcp-bitbucket",
   "version": "1.0.0",
   "description": "",
   "type": "module",
@@ -46,5 +46,5 @@
   },
   "keywords": [],
   "author": "",
-  "license": "CC-BY-NC-SA-4.0"
+  "license": "Apache-2.0"
 }

@@ -25,9 +25,9 @@ RUN mkdir -p /usr/src/app/logs && chown -R appuser:appgroup /usr/src/app/logs
 
 USER appuser
 
-ENV ENABLE_SSE_TRANSPORT=true
-ENV MCP_SSE_PORT=9000
+ENV ENABLE_HTTP_TRANSPORT=false
+ENV MCP_SSE_PORT=3001
 
-EXPOSE 9000
+EXPOSE 3001
 
 CMD ["npm", "start"]

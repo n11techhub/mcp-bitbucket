@@ -1,6 +1,6 @@
-# mcp-bitbucket-n11
+# mcp-bitbucket
 
-![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)
+![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 
 **A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Bitbucket Server/Data Center.**
@@ -55,12 +55,12 @@ Model Context Protocol (MCP) is an open standard for securely connecting AI syst
 1. **Clone the Repository:**
    ```bash
    git clone <repository_url>
-   cd mcp-bitbucket-n11
+   cd mcp-bitbucket
    ```
 
 2. **Build the Docker Image:**
    ```bash
-   docker build -t mcp-bitbucket-n11:latest .
+   docker build -t mcp-bitbucket:latest .
    ```
 
 3. **Run with Docker:**
@@ -68,7 +68,7 @@ Model Context Protocol (MCP) is an open standard for securely connecting AI syst
    docker run -i --rm \
      -e BITBUCKET_URL="https://your-bitbucket-server.com" \
      -e BITBUCKET_TOKEN="your_personal_access_token" \
-     mcp-bitbucket-n11:latest
+     mcp-bitbucket:latest
    ```
 
 ### Local Development
@@ -76,7 +76,7 @@ Model Context Protocol (MCP) is an open standard for securely connecting AI syst
 1. **Clone and Install:**
    ```bash
    git clone <repository_url>
-   cd mcp-bitbucket-n11
+   cd mcp-bitbucket
    npm install
    ```
 
@@ -118,13 +118,13 @@ The default transport method uses standard input/output for communication. This 
 ```json
 {
   "mcpServers": {
-    "mcp-bitbucket-n11": {
+    "mcp-bitbucket": {
       "command": "docker",
       "args": [
         "run", "-i", "--rm", "--network=host",
         "-e", "BITBUCKET_URL",
         "-e", "BITBUCKET_TOKEN",
-        "mcp-bitbucket-n11:latest"
+        "mcp-bitbucket:latest"
       ],
       "env": {
         "BITBUCKET_URL": "https://your-bitbucket-server.com",
@@ -150,7 +150,7 @@ docker run -i --rm \
   -e ENABLE_HTTP_TRANSPORT="true" \
   -e MCP_HTTP_PORT="3001" \
   -e MCP_HTTP_ENDPOINT="stream" \
-  mcp-bitbucket-n11:latest
+  mcp-bitbucket:latest
 
 # Using npm script
 npm run start:http
@@ -161,7 +161,7 @@ npm run start:http
 ```json
 {
   "mcpServers": {
-    "mcp-bitbucket-n11": {
+    "mcp-bitbucket": {
       "command": "docker",
       "args": [
         "run", "-i", "--rm",
@@ -171,7 +171,7 @@ npm run start:http
         "-e", "ENABLE_HTTP_TRANSPORT",
         "-e", "MCP_HTTP_PORT",
         "-e", "MCP_HTTP_ENDPOINT",
-        "mcp-bitbucket-n11:latest"
+        "mcp-bitbucket:latest"
       ],
       "env": {
         "BITBUCKET_URL": "https://your-bitbucket-server.com",
@@ -210,7 +210,7 @@ docker run -i --rm \
   -e BITBUCKET_TOKEN="your_personal_access_token" \
   -e ENABLE_HTTP_TRANSPORT="true" \
   -e MCP_API_KEY="your-secure-api-key-here" \
-  mcp-bitbucket-n11:latest
+  mcp-bitbucket:latest
 ```
 
 **Configuration with API Key:**
@@ -218,7 +218,7 @@ docker run -i --rm \
 ```json
 {
   "mcpServers": {
-    "mcp-bitbucket-n11": {
+    "mcp-bitbucket": {
       "command": "docker",
       "args": [
         "run", "-i", "--rm",
@@ -227,7 +227,7 @@ docker run -i --rm \
         "-e", "BITBUCKET_TOKEN",
         "-e", "ENABLE_HTTP_TRANSPORT",
         "-e", "MCP_API_KEY",
-        "mcp-bitbucket-n11:latest"
+        "mcp-bitbucket:latest"
       ],
       "env": {
         "BITBUCKET_URL": "https://your-bitbucket-server.com",
@@ -327,7 +327,7 @@ For detailed parameter information and usage examples, refer to the individual t
 ```bash
 # Clone and setup
 git clone <repository_url>
-cd mcp-bitbucket-n11
+cd mcp-bitbucket
 npm install
 
 # Create environment file

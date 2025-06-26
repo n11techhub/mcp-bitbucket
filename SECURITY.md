@@ -2,7 +2,7 @@
 
 ## Reporting Security Vulnerabilities
 
-If you discover a security vulnerability in mcp-bitbucket-n11, please report it responsibly:
+If you discover a security vulnerability in mcp-bitbucket, please report it responsibly:
 
 - **Email**: Send details to [security@example.com](mailto:security@example.com)
 - **Include**: Steps to reproduce, potential impact, and suggested fixes
@@ -78,10 +78,10 @@ BITBUCKET_TOKEN="BBDC-..."  # This will be exposed!
 #### Docker Environment
 ```bash
 # ✅ GOOD: Pass credentials as environment variables
-docker run -e BITBUCKET_TOKEN="$BITBUCKET_TOKEN" mcp-bitbucket-n11
+docker run -e BITBUCKET_TOKEN="$BITBUCKET_TOKEN" mcp-bitbucket
 
 # ❌ BAD: Hardcoded credentials in Dockerfile or commands
-docker run -e BITBUCKET_TOKEN="BBDC-123..." mcp-bitbucket-n11
+docker run -e BITBUCKET_TOKEN="BBDC-123..." mcp-bitbucket
 ```
 
 #### Environment Files
@@ -166,12 +166,12 @@ RUN apk add --no-cache dumb-init
 docker run --user 1000:1000 \
   --read-only \
   --tmpfs /tmp \
-  mcp-bitbucket-n11
+  mcp-bitbucket
 
 # ✅ GOOD: Limit resources
 docker run --memory="512m" \
   --cpus="1.0" \
-  mcp-bitbucket-n11
+  mcp-bitbucket
 ```
 
 ### 6. Network Security
