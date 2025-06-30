@@ -39,7 +39,6 @@ describe('BitbucketClientFacade', () => {
     let mockUserClient: jest.Mocked<IUserClient>;
 
     beforeEach(() => {
-        // Mock all dependencies
         mockConfig = {
             defaultProject: 'DEFAULT_PROJECT'
         } as jest.Mocked<BitbucketConfig>;
@@ -75,7 +74,6 @@ describe('BitbucketClientFacade', () => {
             getBitbucketUserDetails: jest.fn()
         };
 
-        // Instantiate the facade with mocks
         facade = new BitbucketClientFacade(
             mockConfig,
             mockPullRequestClient,

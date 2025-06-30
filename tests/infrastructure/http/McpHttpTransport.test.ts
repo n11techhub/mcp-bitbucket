@@ -3,10 +3,9 @@
  * Tests the HTTP transport implementation including Express server setup, SSE connections, and request handling
  */
 
-import { jest } from '@jest/globals';
-import { McpHttpTransport } from '../../../src/infrastructure/http/McpHttpTransport.js';
+import {jest} from '@jest/globals';
+import {McpHttpTransport} from '../../../src/infrastructure/http/McpHttpTransport.js';
 
-// Mock dependencies
 const mockApp = {
     use: jest.fn(),
     get: jest.fn(),
@@ -40,7 +39,6 @@ const mockRequest = {
     headers: {},
 };
 
-// Mock external modules
 jest.mock('express', () => {
     const expressMock = jest.fn(() => mockApp);
     (expressMock as any).json = jest.fn();
@@ -56,7 +54,6 @@ describe('McpHttpTransport', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         
-        // Reset mock response methods to not throw errors by default
         mockResponse.setHeader.mockImplementation(() => {});
         mockResponse.flushHeaders.mockImplementation(() => {});
         mockResponse.write.mockImplementation(() => {});
@@ -64,13 +61,10 @@ describe('McpHttpTransport', () => {
         mockResponse.status.mockReturnValue(mockResponse);
         mockResponse.json.mockImplementation(() => {});
         
-        // Reset mock request methods
         mockRequest.on.mockImplementation((...args: any[]) => {
-            // Don't automatically call the handler for 'close' events in setup
             return mockRequest;
         });
         
-        // Reset mock implementations
         mockApp.listen.mockImplementation((...args: any[]) => {
             const callback = args[1];
             if (typeof callback === 'function') {
@@ -176,8 +170,7 @@ describe('McpHttpTransport', () => {
         });
 
         it('should handle null responses with 204 status', async () => {
-            const mockRequestHandler = jest.fn().mockImplementation(() => Promise.resolve(null));
-            transport.request = mockRequestHandler;
+            transport.request = jest.fn().mockImplementation(() => Promise.resolve(null));
 
             mockRequest.body = { method: 'notification' };
 
@@ -188,8 +181,7 @@ describe('McpHttpTransport', () => {
         });
 
         it('should handle errors with 500 status', async () => {
-            const mockRequestHandler = jest.fn().mockImplementation(() => Promise.reject(new Error('Request failed')));
-            transport.request = mockRequestHandler;
+            transport.request = jest.fn().mockImplementation(() => Promise.reject(new Error('Request failed')));
 
             mockRequest.body = { method: 'test' };
 
@@ -251,7 +243,6 @@ describe('McpHttpTransport', () => {
         });
 
         it('should handle SSE setup errors', () => {
-            // Create a new mock response that will throw an error on setHeader
             const errorResponse = {
                 ...mockResponse,
                 setHeader: jest.fn().mockImplementation(() => {
@@ -286,7 +277,7 @@ describe('McpHttpTransport', () => {
 
             expect(mockResponse.write).toHaveBeenCalledWith(expect.stringMatching(/id: \d+/));
             expect(mockResponse.write).toHaveBeenCalledWith('event: message\n');
-            expect(mockResponse.write).toHaveBeenCalledWith(expect.stringMatching(/data: \{.*"result":"test result".*\}/));
+            expect(mockResponse.write).toHaveBeenCalledWith(expect.stringMatching(/data: \{.*"result":"test result".*}/));
             expect(mockLogger.debug).toHaveBeenCalledWith('McpHttpTransport.send', { data: testData });
         });
 
@@ -298,17 +289,15 @@ describe('McpHttpTransport', () => {
             const testData = { id: 1, error: { code: -32001, message: 'Test error' } };
             await transport.send(testData);
 
-            expect(mockResponse.write).toHaveBeenCalledWith(expect.stringMatching(/data: \{.*"error":\{"code":-32001,"message":"Test error"\}.*\}/));
+            expect(mockResponse.write).toHaveBeenCalledWith(expect.stringMatching(/data: \{.*"error":\{"code":-32001,"message":"Test error"}.*}/));
         });
 
         it('should handle client write errors and remove connection', async () => {
             const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
             const getHandler = getCall![1] as Function;
             
-            // First establish the connection successfully
             getHandler(mockRequest, mockResponse);
 
-            // Now make write throw an error for the send operation
             mockResponse.write.mockImplementation(() => {
                 throw new Error('Write error');
             });
@@ -358,10 +347,8 @@ describe('McpHttpTransport', () => {
             const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
             const getHandler = getCall![1] as Function;
             
-            // First establish the connection successfully
             getHandler(mockRequest, mockResponse);
 
-            // Now make end throw an error for the close operation
             mockResponse.end.mockImplementation(() => {
                 throw new Error('End error');
             });
@@ -391,8 +378,7 @@ describe('McpHttpTransport', () => {
 
     describe('request setter', () => {
         it('should set request handler', () => {
-            const mockHandler = jest.fn();
-            transport.request = mockHandler;
+            transport.request = jest.fn();
             expect(transport).toBeInstanceOf(McpHttpTransport);
         });
     });
@@ -401,8 +387,7 @@ describe('McpHttpTransport', () => {
         it('should handle complete lifecycle with multiple clients', async () => {
             await transport.start();
 
-            const mockRequestHandler = jest.fn().mockImplementation(() => Promise.resolve({ result: 'success' }));
-            transport.request = mockRequestHandler;
+            transport.request = jest.fn().mockImplementation(() => Promise.resolve({result: 'success'}));
 
             const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
             const getHandler = getCall![1] as Function;
@@ -432,7 +417,6 @@ describe('McpHttpTransport', () => {
             const mockRequestHandler = jest.fn().mockImplementation(() => Promise.resolve({ result: 'post response' }));
             transport.request = mockRequestHandler;
 
-            // Create fresh mock objects to avoid interference from previous tests
             const freshMockResponse = {
                 setHeader: jest.fn(),
                 flushHeaders: jest.fn(),

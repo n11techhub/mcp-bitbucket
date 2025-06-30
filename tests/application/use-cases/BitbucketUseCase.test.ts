@@ -30,14 +30,12 @@ describe('BitbucketUseCase', () => {
     let bitbucketUseCase: BitbucketUseCase;
     let mockBitbucketClient: jest.Mocked<IBitbucketClientFacade>;
 
-    // Sample data for testing
     const sampleProjectKey = 'TEST_PROJECT';
     const sampleRepository = 'test-repo';
     const samplePrId = 123;
     const sampleUserId = 'test-user';
 
     beforeEach(() => {
-        // Create mock client facade
         mockBitbucketClient = {
             createBitbucketPullRequest: jest.fn(),
             getBitbucketPullRequestDetails: jest.fn(),
@@ -58,7 +56,6 @@ describe('BitbucketUseCase', () => {
             getDefaultProjectKey: jest.fn()
         };
 
-        // Create use case instance with mocked dependency
         bitbucketUseCase = new BitbucketUseCase(mockBitbucketClient);
     });
 

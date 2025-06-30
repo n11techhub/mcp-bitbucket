@@ -6,12 +6,10 @@
 import 'reflect-metadata';
 import { jest } from '@jest/globals';
 
-// Store original values
 const originalEnv = process.env;
 const originalProcessExit = process.exit;
 const originalProcessOn = process.on;
 
-// Mock objects with proper typing
 const mockLogger = {
     info: jest.fn(),
     error: jest.fn(),
@@ -37,7 +35,6 @@ const mockContainer = {
     get: jest.fn(),
 };
 
-// Mock process functions
 const mockProcessExit = jest.fn();
 const mockProcessOn = jest.fn();
 
@@ -48,21 +45,17 @@ describe('Infrastructure Index Module', () => {
         jest.clearAllMocks();
         jest.resetModules();
         
-        // Reset environment variables
         process.env = { ...originalEnv };
         delete process.env.ENABLE_HTTP_TRANSPORT;
         delete process.env.MCP_HTTP_PORT;
         delete process.env.MCP_HTTP_ENDPOINT;
         
-        // Reset signal handlers
         signalHandlers = {};
         
-        // Reset mock implementations
         mockMcpServerSetup.server.connect.mockImplementation(() => Promise.resolve());
         mockMcpHttpServer.start.mockImplementation(() => Promise.resolve());
         mockMcpHttpServer.stop.mockImplementation(() => Promise.resolve());
         
-        // Mock process methods
         process.exit = mockProcessExit as any;
         process.on = mockProcessOn.mockImplementation((...args: any[]) => {
             const [signal, handler] = args;
@@ -70,7 +63,6 @@ describe('Infrastructure Index Module', () => {
             return process;
         }) as any;
         
-        // Setup default container behavior
         mockContainer.get.mockImplementation((type: any) => {
             const typeString = type.toString();
             if (typeString.includes('Logger')) return mockLogger;
@@ -79,7 +71,6 @@ describe('Infrastructure Index Module', () => {
             return null;
         });
 
-        // Mock external dependencies
         jest.doMock('@modelcontextprotocol/sdk/server/stdio.js', () => ({
             StdioServerTransport: jest.fn(() => mockStdioServerTransport),
         }));
@@ -220,7 +211,6 @@ describe('Infrastructure Index Module', () => {
             await import('../../src/infrastructure/index.js');
             await new Promise(setImmediate);
 
-            // Should fallback to default port when parseInt returns NaN
             expect(mockMcpHttpServer.setPort).toHaveBeenCalledWith(3001);
         });
     });
@@ -343,7 +333,6 @@ describe('Infrastructure Index Module', () => {
         });
 
         it('should handle shutdown errors gracefully', async () => {
-            // Reset and setup for HTTP transport with error
             jest.resetModules();
             process.env.ENABLE_HTTP_TRANSPORT = '1';
             const shutdownError = new Error('Shutdown failed');
@@ -386,13 +375,11 @@ describe('Infrastructure Index Module', () => {
             await import('../../src/infrastructure/index.js');
             await new Promise(setImmediate);
 
-            // Verify startup
             expect(mockMcpHttpServer.setPort).toHaveBeenCalledWith(9000);
             expect(mockMcpHttpServer.setEndpoint).toHaveBeenCalledWith('/api/stream');
             expect(mockMcpHttpServer.start).toHaveBeenCalled();
             expect(mockLogger.info).toHaveBeenCalledWith('HTTP streaming transport enabled');
 
-            // Simulate shutdown
             const signalHandler = signalHandlers['SIGINT'];
             await signalHandler();
             
@@ -406,11 +393,9 @@ describe('Infrastructure Index Module', () => {
             await import('../../src/infrastructure/index.js');
             await new Promise(setImmediate);
 
-            // Verify startup
             expect(mockMcpServerSetup.server.connect).toHaveBeenCalledWith(mockStdioServerTransport);
             expect(mockLogger.info).toHaveBeenCalledWith('Stdio transport enabled');
 
-            // Simulate shutdown
             const signalHandler = signalHandlers['SIGTERM'];
             await signalHandler();
             

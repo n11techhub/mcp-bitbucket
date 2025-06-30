@@ -9,6 +9,8 @@ COPY . .
 
 RUN npm run build
 
+RUN npm test -- --verbose
+
 RUN npm prune --production
 
 FROM nexushub.n11.com/node:18-alpine

@@ -4,16 +4,15 @@
  */
 
 import 'reflect-metadata';
-import { jest } from '@jest/globals';
-import { McpHttpServer } from '../../../src/infrastructure/http/McpHttpServer.js';
+import {jest} from '@jest/globals';
+import {McpHttpServer} from '../../../src/infrastructure/http/McpHttpServer.js';
 
-// Mock dependencies
 const mockMcpServerSetup = {
     server: {
         connect: jest.fn().mockImplementation(() => Promise.resolve()),
     },
     getAvailableTools: jest.fn(),
-    callTool: jest.fn().mockImplementation(() => Promise.resolve({ content: [] })),
+    callTool: jest.fn().mockImplementation(() => Promise.resolve({content: []})),
 };
 
 const mockLogger = {
@@ -31,7 +30,6 @@ const mockTransport = {
     request: null as any,
 };
 
-// Mock the McpHttpTransport class
 jest.mock('../../../src/infrastructure/http/McpHttpTransport.js', () => ({
     McpHttpTransport: jest.fn().mockImplementation(() => mockTransport)
 }));
@@ -41,14 +39,13 @@ describe('McpHttpServer', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        
-        // Reset mock implementations
+
         mockTransport.start.mockImplementation(() => Promise.resolve());
         mockTransport.close.mockImplementation(() => Promise.resolve());
         mockMcpServerSetup.server.connect.mockImplementation(() => Promise.resolve());
         mockMcpServerSetup.getAvailableTools.mockReturnValue([
-            { name: 'bitbucket_get_repo', description: 'Get repository info' },
-            { name: 'bitbucket_list_repos', description: 'List repositories' }
+            {name: 'bitbucket_get_repo', description: 'Get repository info'},
+            {name: 'bitbucket_list_repos', description: 'List repositories'}
         ]);
 
         server = new McpHttpServer(mockMcpServerSetup as any, mockLogger as any);
@@ -140,7 +137,7 @@ describe('McpHttpServer', () => {
 
         describe('Invalid Requests', () => {
             it('should handle invalid JSON-RPC requests with id', async () => {
-                const invalidRequest = { method: 'test', id: '123' }; // missing jsonrpc field
+                const invalidRequest = {method: 'test', id: '123'};
                 const result = await requestHandler(invalidRequest, {});
 
                 expect(result).toEqual({
@@ -155,7 +152,7 @@ describe('McpHttpServer', () => {
             });
 
             it('should handle invalid notifications (no id)', async () => {
-                const invalidRequest = { method: 'test' }; // missing jsonrpc field and id
+                const invalidRequest = {method: 'test'};
                 const result = await requestHandler(invalidRequest, {});
 
                 expect(result).toBeNull();
@@ -163,7 +160,7 @@ describe('McpHttpServer', () => {
             });
 
             it('should handle requests with invalid id types', async () => {
-                const invalidRequest = { jsonrpc: '2.0', method: 'test', id: {} };
+                const invalidRequest = {jsonrpc: '2.0', method: 'test', id: {}};
                 const result = await requestHandler(invalidRequest, {});
 
                 expect(result).toEqual({
@@ -179,7 +176,7 @@ describe('McpHttpServer', () => {
 
         describe('initialize', () => {
             it('should handle initialize request', async () => {
-                const request = { jsonrpc: '2.0', method: 'initialize', id: '1' };
+                const request = {jsonrpc: '2.0', method: 'initialize', id: '1'};
                 const result = await requestHandler(request, {});
 
                 expect(result).toEqual({
@@ -208,7 +205,7 @@ describe('McpHttpServer', () => {
 
         describe('ping', () => {
             it('should handle ping request', async () => {
-                const request = { jsonrpc: '2.0', method: 'ping', id: '2' };
+                const request = {jsonrpc: '2.0', method: 'ping', id: '2'};
                 const result = await requestHandler(request, {});
 
                 expect(result).toEqual({
@@ -225,7 +222,7 @@ describe('McpHttpServer', () => {
 
         describe('notifications/initialized', () => {
             it('should handle notifications/initialized', async () => {
-                const request = { jsonrpc: '2.0', method: 'notifications/initialized', id: '3' };
+                const request = {jsonrpc: '2.0', method: 'notifications/initialized', id: '3'};
                 const result = await requestHandler(request, {});
 
                 expect(result).toEqual({
@@ -239,7 +236,7 @@ describe('McpHttpServer', () => {
 
         describe('shutdown', () => {
             it('should handle shutdown request', async () => {
-                const request = { jsonrpc: '2.0', method: 'shutdown', id: '4' };
+                const request = {jsonrpc: '2.0', method: 'shutdown', id: '4'};
                 const result = await requestHandler(request, {});
 
                 expect(result).toEqual({
@@ -256,7 +253,7 @@ describe('McpHttpServer', () => {
 
         describe('tools/list', () => {
             it('should handle tools/list request', async () => {
-                const request = { jsonrpc: '2.0', method: 'tools/list', id: '5' };
+                const request = {jsonrpc: '2.0', method: 'tools/list', id: '5'};
                 const result = await requestHandler(request, {});
 
                 expect(result).toEqual({
@@ -264,8 +261,8 @@ describe('McpHttpServer', () => {
                     id: '5',
                     result: {
                         tools: [
-                            { name: 'bitbucket_get_repo', description: 'Get repository info' },
-                            { name: 'bitbucket_list_repos', description: 'List repositories' }
+                            {name: 'bitbucket_get_repo', description: 'Get repository info'},
+                            {name: 'bitbucket_list_repos', description: 'List repositories'}
                         ]
                     }
                 });
@@ -276,7 +273,7 @@ describe('McpHttpServer', () => {
 
         describe('tools/call', () => {
             it('should handle valid tool call successfully', async () => {
-                const mockResult = { content: [{ type: 'text', text: 'Tool executed successfully' }] };
+                const mockResult = {content: [{type: 'text', text: 'Tool executed successfully'}]};
                 mockMcpServerSetup.callTool.mockImplementation(() => Promise.resolve(mockResult));
 
                 const request = {
@@ -285,10 +282,10 @@ describe('McpHttpServer', () => {
                     id: '6',
                     params: {
                         name: 'bitbucket_get_repo',
-                        arguments: { workspace: 'test', repo: 'test-repo' }
+                        arguments: {workspace: 'test', repo: 'test-repo'}
                     }
                 };
-                const headers = { 'x-api-key': 'test-api-key' };
+                const headers = {'x-api-key': 'test-api-key'};
                 const result = await requestHandler(request, headers);
 
                 expect(result).toEqual({
@@ -298,13 +295,13 @@ describe('McpHttpServer', () => {
                 });
                 expect(mockMcpServerSetup.callTool).toHaveBeenCalledWith(
                     'bitbucket_get_repo',
-                    { workspace: 'test', repo: 'test-repo' },
+                    {workspace: 'test', repo: 'test-repo'},
                     'test-api-key'
                 );
             });
 
             it('should handle tool call without arguments', async () => {
-                const mockResult = { content: [{ type: 'text', text: 'Tool executed' }] };
+                const mockResult = {content: [{type: 'text', text: 'Tool executed'}]};
                 mockMcpServerSetup.callTool.mockImplementation(() => Promise.resolve(mockResult));
 
                 const request = {
@@ -335,7 +332,7 @@ describe('McpHttpServer', () => {
                     method: 'tools/call',
                     id: '8',
                     params: {
-                        arguments: { workspace: 'test' }
+                        arguments: {workspace: 'test'}
                     }
                 };
                 const result = await requestHandler(request, {});
@@ -357,7 +354,7 @@ describe('McpHttpServer', () => {
                     id: '9',
                     params: {
                         name: 123,
-                        arguments: { workspace: 'test' }
+                        arguments: {workspace: 'test'}
                     }
                 };
                 const result = await requestHandler(request, {});
@@ -404,7 +401,7 @@ describe('McpHttpServer', () => {
                     id: '11',
                     params: {
                         name: 'bitbucket_get_repo',
-                        arguments: { workspace: 'test', repo: 'test-repo' }
+                        arguments: {workspace: 'test', repo: 'test-repo'}
                     }
                 };
                 const result = await requestHandler(request, {});
@@ -423,7 +420,7 @@ describe('McpHttpServer', () => {
 
         describe('Unknown Methods', () => {
             it('should handle unknown methods', async () => {
-                const request = { jsonrpc: '2.0', method: 'unknown_method', id: '12' };
+                const request = {jsonrpc: '2.0', method: 'unknown_method', id: '12'};
                 const result = await requestHandler(request, {});
 
                 expect(result).toEqual({
@@ -440,12 +437,11 @@ describe('McpHttpServer', () => {
 
         describe('Request Processing Errors', () => {
             it('should handle unexpected errors during request processing', async () => {
-                // Mock getAvailableTools to throw an error
                 mockMcpServerSetup.getAvailableTools.mockImplementation(() => {
                     throw new Error('Unexpected error');
                 });
 
-                const request = { jsonrpc: '2.0', method: 'tools/list', id: '13' };
+                const request = {jsonrpc: '2.0', method: 'tools/list', id: '13'};
                 const result = await requestHandler(request, {});
 
                 expect(result).toEqual({
@@ -458,17 +454,15 @@ describe('McpHttpServer', () => {
                 });
                 expect(mockLogger.error).toHaveBeenCalledWith('Error handling request', expect.any(Error));
 
-                // Reset the mock
                 mockMcpServerSetup.getAvailableTools.mockReturnValue([]);
             });
 
             it('should handle non-Error exceptions', async () => {
-                // Mock getAvailableTools to throw a non-Error
                 mockMcpServerSetup.getAvailableTools.mockImplementation(() => {
                     throw 'String error';
                 });
 
-                const request = { jsonrpc: '2.0', method: 'tools/list', id: '14' };
+                const request = {jsonrpc: '2.0', method: 'tools/list', id: '14'};
                 const result = await requestHandler(request, {});
 
                 expect(result).toEqual({
@@ -480,7 +474,6 @@ describe('McpHttpServer', () => {
                     }
                 });
 
-                // Reset the mock
                 mockMcpServerSetup.getAvailableTools.mockReturnValue([]);
             });
         });
@@ -488,19 +481,16 @@ describe('McpHttpServer', () => {
 
     describe('Integration Scenarios', () => {
         it('should handle complete server lifecycle', async () => {
-            // Start server
             await server.start();
             expect(mockTransport.start).toHaveBeenCalled();
             expect(mockMcpServerSetup.server.connect).toHaveBeenCalled();
 
-            // Process a request
             const requestHandler = mockTransport.request;
-            const request = { jsonrpc: '2.0', method: 'ping', id: '1' };
+            const request = {jsonrpc: '2.0', method: 'ping', id: '1'};
             const result = await requestHandler(request, {});
-            
+
             expect(result.result.status).toBe('ok');
 
-            // Stop server
             await server.stop();
             expect(mockTransport.close).toHaveBeenCalled();
         });
@@ -509,29 +499,30 @@ describe('McpHttpServer', () => {
             await server.start();
             const requestHandler = mockTransport.request;
 
-            // Initialize
-            const initRequest = { jsonrpc: '2.0', method: 'initialize', id: '1' };
+            const initRequest = {jsonrpc: '2.0', method: 'initialize', id: '1'};
             const initResult = await requestHandler(initRequest, {});
             expect(initResult.result.serverInfo.name).toBe('Bitbucket MCP Server');
 
-            // List tools
-            const toolsRequest = { jsonrpc: '2.0', method: 'tools/list', id: '2' };
+            const toolsRequest = {jsonrpc: '2.0', method: 'tools/list', id: '2'};
             const toolsResult = await requestHandler(toolsRequest, {});
             expect(toolsResult.result.tools).toHaveLength(2);
 
-            // Call tool
-            mockMcpServerSetup.callTool.mockImplementation(() => Promise.resolve({ content: [{ type: 'text', text: 'Success' }] }));
+            mockMcpServerSetup.callTool.mockImplementation(() => Promise.resolve({
+                content: [{
+                    type: 'text',
+                    text: 'Success'
+                }]
+            }));
             const callRequest = {
                 jsonrpc: '2.0',
                 method: 'tools/call',
                 id: '3',
-                params: { name: 'bitbucket_get_repo', arguments: { workspace: 'test' } }
+                params: {name: 'bitbucket_get_repo', arguments: {workspace: 'test'}}
             };
             const callResult = await requestHandler(callRequest, {});
             expect(callResult.result.content[0].text).toBe('Success');
 
-            // Shutdown
-            const shutdownRequest = { jsonrpc: '2.0', method: 'shutdown', id: '4' };
+            const shutdownRequest = {jsonrpc: '2.0', method: 'shutdown', id: '4'};
             const shutdownResult = await requestHandler(shutdownRequest, {});
             expect(shutdownResult.result.status).toBe('ok');
         });
@@ -540,23 +531,19 @@ describe('McpHttpServer', () => {
             await server.start();
             const requestHandler = mockTransport.request;
 
-            // String ID
-            const stringIdRequest = { jsonrpc: '2.0', method: 'ping', id: 'string-id' };
+            const stringIdRequest = {jsonrpc: '2.0', method: 'ping', id: 'string-id'};
             const stringResult = await requestHandler(stringIdRequest, {});
             expect(stringResult.id).toBe('string-id');
 
-            // Number ID
-            const numberIdRequest = { jsonrpc: '2.0', method: 'ping', id: 42 };
+            const numberIdRequest = {jsonrpc: '2.0', method: 'ping', id: 42};
             const numberResult = await requestHandler(numberIdRequest, {});
             expect(numberResult.id).toBe(42);
 
-            // Null ID
-            const nullIdRequest = { jsonrpc: '2.0', method: 'ping', id: null };
+            const nullIdRequest = {jsonrpc: '2.0', method: 'ping', id: null};
             const nullResult = await requestHandler(nullIdRequest, {});
             expect(nullResult.id).toBeNull();
 
-            // No ID (notification)
-            const noIdRequest = { jsonrpc: '2.0', method: 'notifications/initialized' };
+            const noIdRequest = {jsonrpc: '2.0', method: 'notifications/initialized'};
             const noIdResult = await requestHandler(noIdRequest, {});
             expect(noIdResult.id).toBeUndefined();
         });
@@ -564,7 +551,7 @@ describe('McpHttpServer', () => {
         it('should handle custom port and endpoint configuration', async () => {
             server.setPort(9000);
             server.setEndpoint('/custom');
-            
+
             await server.start();
 
             expect(mockTransport.setPort).toHaveBeenCalledWith(9000);

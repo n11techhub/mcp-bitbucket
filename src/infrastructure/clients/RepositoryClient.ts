@@ -114,7 +114,7 @@ export class RepositoryClient implements IRepositoryClient {
                 `/projects/${projectKey}/repos/${repoSlug}/branches`,
                 {
                     name: newBranchName,
-                    startPoint: sourceBranchOrCommit ?? 'main' // Default to main if not specified
+                    startPoint: sourceBranchOrCommit ?? 'main'
                 }
             );
             return {
