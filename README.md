@@ -54,7 +54,7 @@ Model Context Protocol (MCP) is an open standard for securely connecting AI syst
 
 1. **Clone the Repository:**
    ```bash
-   git clone <repository_url>
+   git clone https://github.com/n11tech/mcp-bitbucket.git
    cd mcp-bitbucket
    ```
 
@@ -75,7 +75,7 @@ Model Context Protocol (MCP) is an open standard for securely connecting AI syst
 
 1. **Clone and Install:**
    ```bash
-   git clone <repository_url>
+   git clone https://github.com/n11tech/mcp-bitbucket.git
    cd mcp-bitbucket
    npm install
    ```

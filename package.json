@@ -1,7 +1,7 @@
 {
   "name": "mcp-bitbucket",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Bitbucket Server/Data Center that enables AI systems to securely interact with Bitbucket repositories, pull requests, and code.",
   "type": "module",
   "main": "build/infrastructure/index.js",
   "scripts": {
@@ -44,7 +44,16 @@
   "engines": {
     "node": ">=18"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "mcp", 
+    "model-context-protocol", 
+    "bitbucket", 
+    "atlassian", 
+    "ai", 
+    "llm", 
+    "typescript", 
+    "nodejs"
+  ],
+  "author": "n11 Elektronik Ticaret ve Bilişim Hizmetleri A.Ş.",
   "license": "Apache-2.0"
 }
