@@ -26,7 +26,8 @@ async function startStdioServer(logger: winston.Logger, mcpServerSetup: McpServe
 async function startHttpServer(logger: winston.Logger, mcpHttpServer: McpHttpServer): Promise<void> {
     try {
         logger.info('Starting MCP server with HTTP streaming transport');
-        const port = process.env.MCP_HTTP_PORT ? parseInt(process.env.MCP_HTTP_PORT, 10) : 3001;
+        const portFromEnv = process.env.MCP_HTTP_PORT ? parseInt(process.env.MCP_HTTP_PORT, 10) : 3001;
+        const port = isNaN(portFromEnv) ? 3001 : portFromEnv;
         let endpoint = process.env.MCP_HTTP_ENDPOINT ?? '/stream';
         if (!endpoint.startsWith('/')) {
             endpoint = `/${endpoint}`;

@@ -264,14 +264,14 @@ export class McpServerSetup {
                 }
             } catch (error) {
                 this.logger.error('[CallToolRequestSchema] Tool execution error', {error});
+                if (error instanceof McpError) {
+                    throw error;
+                }
                 if (axios.isAxiosError(error)) {
                     throw new McpError(
                         ErrorCode.InternalError,
                         `Bitbucket API error: ${error.response?.data.message ?? error.message}`
                     );
-                }
-                if (error instanceof McpError) {
-                    throw error;
                 }
                 throw new McpError(ErrorCode.InternalError, error instanceof Error ? error.message : String(error));
             }

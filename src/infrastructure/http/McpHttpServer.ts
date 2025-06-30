@@ -62,11 +62,15 @@ export class McpHttpServer {
                 request,
                 errors: parseResult.error.flatten(),
             });
-            const id = (request && typeof request === 'object' && 'id' in request) ? request.id : null;
-            if (id === undefined) {
+            
+            // Check if this is a notification (no id field) - if so, ignore silently
+            const hasIdField = request && typeof request === 'object' && 'id' in request;
+            if (!hasIdField) {
                 this.logger.warn('Invalid notification received, ignoring silently');
                 return null;
             }
+            
+            const id = request.id;
             return {
                 jsonrpc: '2.0',
                 id: (typeof id === 'string' || typeof id === 'number' || id === null) ? id : null,

@@ -4,7 +4,7 @@
 
 If you discover a security vulnerability in mcp-bitbucket, please report it responsibly:
 
-- **Email**: Send details to [security@example.com](mailto:security@example.com)
+- **Email**: Send details to [Itarchitectteam@n11.com](mailto:security@example.com)
 - **Include**: Steps to reproduce, potential impact, and suggested fixes
 - **Response**: We will acknowledge receipt within 72 hours and provide updates on our investigation
 
@@ -258,8 +258,8 @@ server {
 ## Contact
 
 For security-related questions or concerns:
-- **Security Team**: [security@example.com](mailto:security@example.com)
-- **Project Maintainer**: [maintainer@example.com](mailto:maintainer@example.com)
+- **Security Team**: [Itarchitectteam@n11.com](mailto:security@example.com)
+- **Project Maintainer**: [Itarchitectteam@n11.comm](mailto:maintainer@example.com)
 
 ---
 

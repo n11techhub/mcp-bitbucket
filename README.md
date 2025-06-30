@@ -360,7 +360,7 @@ src/
 
 ## License
 
-This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0).
+This project is licensed under the Apache License, Version 2.0.
 
 See the `LICENSE` file for more details.
 
