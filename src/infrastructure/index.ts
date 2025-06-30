@@ -99,4 +99,7 @@ function setupProcessHandlers(logger: winston.Logger): void {
     });
 }
 
-main();
+main().catch((error) => {
+    console.error('Fatal error during application startup:', error);
+    process.exit(1);
+});
