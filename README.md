@@ -2,6 +2,8 @@
 
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
+[![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-n11tech%2Fmcp--bitbucket-blue?logo=github&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/pkgs/container/mcp-bitbucket)
+[![Docker Build](https://img.shields.io/github/actions/workflow/status/n11tech/mcp-bitbucket/docker-publish.yml?branch=main&label=Docker%20Build&logo=docker&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/actions/workflows/docker-publish.yml)
 
 **A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Bitbucket Server/Data Center.**
 
@@ -51,6 +53,22 @@ Model Context Protocol (MCP) is an open standard for securely connecting AI syst
 ## Installation
 
 ### Docker (Recommended)
+
+#### Using Pre-built Image from GHCR
+
+**Pull and run the latest image:**
+```bash
+# Pull the latest image from GitHub Container Registry
+docker pull ghcr.io/n11tech/mcp-bitbucket:latest
+
+# Run with environment variables
+docker run -i --rm \
+  -e BITBUCKET_URL="https://your-bitbucket-server.com" \
+  -e BITBUCKET_TOKEN="your_personal_access_token" \
+  ghcr.io/n11tech/mcp-bitbucket:latest
+```
+
+#### Building from Source
 
 1. **Clone the Repository:**
    ```bash
@@ -124,7 +142,7 @@ The default transport method uses standard input/output for communication. This 
         "run", "-i", "--rm", "--network=host",
         "-e", "BITBUCKET_URL",
         "-e", "BITBUCKET_TOKEN",
-        "mcp-bitbucket:latest"
+        "ghcr.io/n11tech/mcp-bitbucket:latest"
       ],
       "env": {
         "BITBUCKET_URL": "https://your-bitbucket-server.com",
@@ -142,7 +160,7 @@ For scenarios requiring remote connections or web-based integrations, the server
 **Enable HTTP Transport:**
 
 ```bash
-# Using Docker
+# Using GHCR image
 docker run -i --rm \
   -p 3001:3001 \
   -e BITBUCKET_URL="https://your-bitbucket-server.com" \
@@ -150,7 +168,7 @@ docker run -i --rm \
   -e ENABLE_HTTP_TRANSPORT="true" \
   -e MCP_HTTP_PORT="3001" \
   -e MCP_HTTP_ENDPOINT="stream" \
-  mcp-bitbucket:latest
+  ghcr.io/n11tech/mcp-bitbucket:latest
 
 # Using npm script
 npm run start:http
@@ -171,7 +189,7 @@ npm run start:http
         "-e", "ENABLE_HTTP_TRANSPORT",
         "-e", "MCP_HTTP_PORT",
         "-e", "MCP_HTTP_ENDPOINT",
-        "mcp-bitbucket:latest"
+        "ghcr.io/n11tech/mcp-bitbucket:latest"
       ],
       "env": {
         "BITBUCKET_URL": "https://your-bitbucket-server.com",
