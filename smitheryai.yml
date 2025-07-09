@@ -1,0 +1,33 @@
+# Smithery AI configuration file for mcp-bitbucket
+# Local deployment configuration using GitHub Container Registry
+
+# Specify TypeScript runtime
+runtime: "typescript"
+
+# Docker configuration
+docker:
+  # Use local deployment mode (not remote)
+  local: true
+  
+  # GitHub Container Registry configuration
+  registry:
+    type: "github"
+    repository: "mcp-bitbucket"
+    # The tag will be automatically generated based on the Git commit
+  
+  # Build configuration matching your existing Dockerfile
+  build:
+    context: "."
+    dockerfile: "./Dockerfile"
+
+# Entry point configuration
+server:
+  main: "./build/infrastructure/index.js"
+  env:
+    ENABLE_HTTP_TRANSPORT: "true"
+    # Add any other required environment variables here
+
+# Resource limits (adjust according to your needs)
+resources:
+  cpu: "500m"
+  memory: "512Mi"
