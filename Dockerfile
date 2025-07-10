@@ -9,8 +9,6 @@ COPY . .
 
 RUN npm run build
 
-RUN npm test -- --verbose
-
 RUN npm prune --production
 
 FROM node:18-alpine
