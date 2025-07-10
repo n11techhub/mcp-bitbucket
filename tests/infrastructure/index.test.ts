@@ -166,9 +166,9 @@ describe('Infrastructure Index Module', () => {
             await new Promise(setImmediate);
 
             expect(mockMcpHttpServer.setPort).toHaveBeenCalledWith(3001);
-            expect(mockMcpHttpServer.setEndpoint).toHaveBeenCalledWith('/stream');
+            expect(mockMcpHttpServer.setEndpoint).toHaveBeenCalledWith('/mcp');
             expect(mockLogger.info).toHaveBeenCalledWith(
-                'Bitbucket MCP server running on HTTP streaming transport (port 3001, endpoint /stream)'
+                'Bitbucket MCP server running on HTTP streaming transport (port 3001, endpoint /mcp)'
             );
         });
 
@@ -180,29 +180,29 @@ describe('Infrastructure Index Module', () => {
 
             expect(mockMcpHttpServer.setPort).toHaveBeenCalledWith(8080);
             expect(mockLogger.info).toHaveBeenCalledWith(
-                'Bitbucket MCP server running on HTTP streaming transport (port 8080, endpoint /stream)'
+                'Bitbucket MCP server running on HTTP streaming transport (port 8080, endpoint /mcp)'
             );
         });
 
         it('should use custom endpoint when MCP_HTTP_ENDPOINT is set', async () => {
-            process.env.MCP_HTTP_ENDPOINT = 'api/stream';
+            process.env.MCP_HTTP_ENDPOINT = 'api/mcp';
 
             await import('../../src/infrastructure/index.js');
             await new Promise(setImmediate);
 
-            expect(mockMcpHttpServer.setEndpoint).toHaveBeenCalledWith('/api/stream');
+            expect(mockMcpHttpServer.setEndpoint).toHaveBeenCalledWith('/api/mcp');
             expect(mockLogger.info).toHaveBeenCalledWith(
-                'Bitbucket MCP server running on HTTP streaming transport (port 3001, endpoint /api/stream)'
+                'Bitbucket MCP server running on HTTP streaming transport (port 3001, endpoint /api/mcp)'
             );
         });
 
         it('should handle endpoint that already starts with slash', async () => {
-            process.env.MCP_HTTP_ENDPOINT = '/api/stream';
+            process.env.MCP_HTTP_ENDPOINT = '/api/mcp';
 
             await import('../../src/infrastructure/index.js');
             await new Promise(setImmediate);
 
-            expect(mockMcpHttpServer.setEndpoint).toHaveBeenCalledWith('/api/stream');
+            expect(mockMcpHttpServer.setEndpoint).toHaveBeenCalledWith('/api/mcp');
         });
 
         it('should handle invalid port number gracefully', async () => {
@@ -370,13 +370,13 @@ describe('Infrastructure Index Module', () => {
         it('should complete full HTTP server lifecycle', async () => {
             process.env.ENABLE_HTTP_TRANSPORT = '1';
             process.env.MCP_HTTP_PORT = '9000';
-            process.env.MCP_HTTP_ENDPOINT = '/api/stream';
+            process.env.MCP_HTTP_ENDPOINT = '/api/mcp';
 
             await import('../../src/infrastructure/index.js');
             await new Promise(setImmediate);
 
             expect(mockMcpHttpServer.setPort).toHaveBeenCalledWith(9000);
-            expect(mockMcpHttpServer.setEndpoint).toHaveBeenCalledWith('/api/stream');
+            expect(mockMcpHttpServer.setEndpoint).toHaveBeenCalledWith('/api/mcp');
             expect(mockMcpHttpServer.start).toHaveBeenCalled();
             expect(mockLogger.info).toHaveBeenCalledWith('HTTP streaming transport enabled');
 

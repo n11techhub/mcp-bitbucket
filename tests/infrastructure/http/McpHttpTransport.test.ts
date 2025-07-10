@@ -61,7 +61,7 @@ describe('McpHttpTransport', () => {
         mockResponse.status.mockReturnValue(mockResponse);
         mockResponse.json.mockImplementation(() => {});
         
-        mockRequest.on.mockImplementation((...args: any[]) => {
+        mockRequest.on.mockImplementation(function (...args: any[]) {
             return mockRequest;
         });
         
@@ -97,7 +97,7 @@ describe('McpHttpTransport', () => {
         });
 
         it('should set endpoint correctly', () => {
-            transport.setEndpoint('/api/stream');
+            transport.setEndpoint('/api/mcp');
             expect(transport).toBeInstanceOf(McpHttpTransport);
         });
     });
@@ -108,8 +108,8 @@ describe('McpHttpTransport', () => {
 
             expect(mockApp.use).toHaveBeenCalledTimes(3);
             expect(mockApp.get).toHaveBeenCalledWith('/health', expect.any(Function));
-            expect(mockApp.get).toHaveBeenCalledWith('/stream', expect.any(Function));
-            expect(mockApp.post).toHaveBeenCalledWith('/stream', expect.any(Function));
+            expect(mockApp.get).toHaveBeenCalledWith('/mcp', expect.any(Function));
+            expect(mockApp.post).toHaveBeenCalledWith('/mcp', expect.any(Function));
             expect(mockApp.listen).toHaveBeenCalledWith(3001, expect.any(Function));
             expect(mockLogger.info).toHaveBeenCalledWith('HTTP Streaming transport started on port 3001');
         });
@@ -123,11 +123,11 @@ describe('McpHttpTransport', () => {
         });
 
         it('should use custom endpoint when set', async () => {
-            transport.setEndpoint('/api/stream');
+            transport.setEndpoint('/api/mcp');
             await transport.start();
 
-            expect(mockApp.post).toHaveBeenCalledWith('/api/stream', expect.any(Function));
-            expect(mockApp.get).toHaveBeenCalledWith('/api/stream', expect.any(Function));
+            expect(mockApp.post).toHaveBeenCalledWith('/api/mcp', expect.any(Function));
+            expect(mockApp.get).toHaveBeenCalledWith('/api/mcp', expect.any(Function));
         });
     });
 
@@ -151,7 +151,7 @@ describe('McpHttpTransport', () => {
 
         beforeEach(async () => {
             await transport.start();
-            const postCall = mockApp.post.mock.calls.find((call: any) => call[0] === '/stream');
+            const postCall = mockApp.post.mock.calls.find((call: any) => call[0] === '/mcp');
             postHandler = postCall![1] as any;
         });
 
@@ -217,7 +217,7 @@ describe('McpHttpTransport', () => {
 
         beforeEach(async () => {
             await transport.start();
-            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
+            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/mcp');
             getHandler = getCall![1] as any;
         });
 
@@ -252,7 +252,7 @@ describe('McpHttpTransport', () => {
                 end: jest.fn()
             };
 
-            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
+            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/mcp');
             const getHandler = getCall![1] as Function;
             getHandler(mockRequest, errorResponse);
 
@@ -268,7 +268,7 @@ describe('McpHttpTransport', () => {
         });
 
         it('should send data to connected clients', async () => {
-            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
+            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/mcp');
             const getHandler = getCall![1] as Function;
             getHandler(mockRequest, mockResponse);
 
@@ -282,7 +282,7 @@ describe('McpHttpTransport', () => {
         });
 
         it('should handle data with error property', async () => {
-            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
+            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/mcp');
             const getHandler = getCall![1] as Function;
             getHandler(mockRequest, mockResponse);
 
@@ -293,7 +293,7 @@ describe('McpHttpTransport', () => {
         });
 
         it('should handle client write errors and remove connection', async () => {
-            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
+            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/mcp');
             const getHandler = getCall![1] as Function;
             
             getHandler(mockRequest, mockResponse);
@@ -332,7 +332,7 @@ describe('McpHttpTransport', () => {
         });
 
         it('should close all connections and server', async () => {
-            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
+            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/mcp');
             const getHandler = getCall![1] as Function;
             getHandler(mockRequest, mockResponse);
 
@@ -344,7 +344,7 @@ describe('McpHttpTransport', () => {
         });
 
         it('should handle connection close errors', async () => {
-            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
+            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/mcp');
             const getHandler = getCall![1] as Function;
             
             getHandler(mockRequest, mockResponse);
@@ -389,7 +389,7 @@ describe('McpHttpTransport', () => {
 
             transport.request = jest.fn().mockImplementation(() => Promise.resolve({result: 'success'}));
 
-            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
+            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/mcp');
             const getHandler = getCall![1] as Function;
             
             const mockResponse1 = { ...mockResponse, write: jest.fn(), end: jest.fn() };
@@ -432,11 +432,11 @@ describe('McpHttpTransport', () => {
                 headers: {},
             };
 
-            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/stream');
+            const getCall = mockApp.get.mock.calls.find((call: any) => call[0] === '/mcp');
             const getHandler = getCall![1] as Function;
             getHandler(freshMockRequest, freshMockResponse);
 
-            const postCall = mockApp.post.mock.calls.find((call: any) => call[0] === '/stream');
+            const postCall = mockApp.post.mock.calls.find((call: any) => call[0] === '/mcp');
             const postHandler = postCall![1] as Function;
             
             await postHandler(freshMockRequest, freshMockResponse);

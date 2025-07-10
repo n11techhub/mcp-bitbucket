@@ -80,7 +80,7 @@ describe('McpHttpServer', () => {
             expect(mockMcpServerSetup.server.connect).toHaveBeenCalledWith(mockTransport);
             expect(mockLogger.info).toHaveBeenCalledWith('Starting HTTP Streaming server on port 3001');
             expect(mockLogger.info).toHaveBeenCalledWith('Connecting MCP server to HTTP streaming transport');
-            expect(mockLogger.info).toHaveBeenCalledWith('Bitbucket MCP HTTP streaming server running on port 3001 at endpoint /stream');
+            expect(mockLogger.info).toHaveBeenCalledWith('Bitbucket MCP HTTP streaming server running on port 3001 at endpoint /mcp');
         });
 
         it('should handle transport start errors', async () => {
