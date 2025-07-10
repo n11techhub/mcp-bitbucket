@@ -33,7 +33,7 @@ export class McpHttpServer {
     private readonly mcpServerSetup: McpServerSetup;
     private readonly logger: winston.Logger;
     private port: number = 3001;
-    private endpoint: string = '/stream';
+    private endpoint: string = '/mcp';
 
     constructor(
         @inject(TYPES.McpServerSetup) mcpServerSetup: McpServerSetup,

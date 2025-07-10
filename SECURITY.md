@@ -185,12 +185,8 @@ docker run --memory="512m" \
 # Example iptables rules for HTTP transport
 iptables -A INPUT -p tcp --dport 3001 -s 192.168.1.0/24 -j ACCEPT
 iptables -A INPUT -p tcp --dport 3001 -j DROP
-```
 
-#### TLS/HTTPS
-- Use reverse proxy with TLS termination for production
-- Example nginx configuration:
-```nginx
+# Example nginx configuration:
 server {
     listen 443 ssl;
     server_name mcp-bitbucket.yourdomain.com;
@@ -199,68 +195,9 @@ server {
     ssl_certificate_key /path/to/key.pem;
     
     location / {
-        proxy_pass http://127.0.0.1:3001;
+        proxy_pass http://127.0.0.1:3001/mcp;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
 ```
-
-## Production Deployment Security
-
-### Checklist
-- [ ] API key authentication enabled for HTTP transport
-- [ ] Bitbucket tokens have minimal required permissions
-- [ ] Environment variables are secured and not exposed
-- [ ] Logs are configured to exclude sensitive data
-- [ ] Container runs as non-root user
-- [ ] Network access is properly restricted
-- [ ] TLS/HTTPS is configured for external access
-- [ ] Monitoring and alerting are configured
-- [ ] Backup and disaster recovery plans are in place
-
-### Monitoring & Alerting
-- Monitor for unusual API usage patterns
-- Set up alerts for authentication failures
-- Track Bitbucket API rate limits and usage
-- Monitor container resource usage
-- Log and alert on security-related events
-
-## Incident Response
-
-### In Case of Compromise
-1. **Immediate Actions**:
-   - Revoke compromised Bitbucket tokens
-   - Regenerate API keys
-   - Stop affected containers/services
-   - Isolate affected systems
-
-2. **Investigation**:
-   - Review access logs
-   - Check Bitbucket audit logs
-   - Analyze container logs
-   - Document timeline and impact
-
-3. **Recovery**:
-   - Deploy with new credentials
-   - Update security configurations
-   - Notify affected stakeholders
-   - Conduct post-incident review
-
-## Security Updates
-
-- Monitor project dependencies for vulnerabilities
-- Regularly update Node.js base images
-- Subscribe to Bitbucket security advisories
-- Keep Docker runtime and host systems updated
-- Review and update security policies quarterly
-
-## Contact
-
-For security-related questions or concerns:
-- **Security Team**: [Itarchitectteam@n11.com](mailto:security@example.com)
-- **Project Maintainer**: [Itarchitectteam@n11.comm](mailto:maintainer@example.com)
-
----
-
-**Remember**: Security is a shared responsibility. Always follow your organization's security policies and best practices when deploying and using this MCP server.

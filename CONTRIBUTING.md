@@ -54,6 +54,9 @@ cp config.template.env .env
 # Edit .env with your Bitbucket credentials
 BITBUCKET_URL=https://your-bitbucket-server.com
 BITBUCKET_TOKEN=your_personal_access_token
+ENABLE_HTTP_TRANSPORT=true
+MCP_HTTP_PORT=3001
+MCP_HTTP_ENDPOINT=mcp
 ```
 
 ## Code Standards

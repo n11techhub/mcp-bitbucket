@@ -19,7 +19,7 @@ export class McpHttpTransport implements Transport {
     private requestHandler: any = null;
     private port: number = 3001;
     private httpServer: any = null;
-    private endpoint: string = '/stream';
+    private endpoint: string = '/mcp';
     private readonly app = express();
 
     constructor(logger: winston.Logger) {

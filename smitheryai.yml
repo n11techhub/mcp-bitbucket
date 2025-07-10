@@ -1,33 +1,33 @@
-# Smithery AI configuration file for mcp-bitbucket
-# Local deployment configuration using GitHub Container Registry
+runtime: "container"
 
-# Specify TypeScript runtime
-runtime: "typescript"
+build:
+  dockerfile: "./Dockerfile"
+  dockerBuildPath: "."
 
-# Docker configuration
-docker:
-  # Use local deployment mode (not remote)
-  local: true
-  
-  # GitHub Container Registry configuration
-  registry:
-    type: "github"
-    repository: "mcp-bitbucket"
-    # The tag will be automatically generated based on the Git commit
-  
-  # Build configuration matching your existing Dockerfile
-  build:
-    context: "."
-    dockerfile: "./Dockerfile"
+startCommand:
+  type: "http"
+  configSchema:
+    type: "object"
+    required: ["bitbucketUrl", "bitbucketToken"]
+    properties:
+      bitbucketUrl:
+        type: "string"
+        title: "Bitbucket Server URL"
+        description: "The base URL of your self-hosted Bitbucket instance (e.g., https://<your-bitbucket-url>)"
+      bitbucketToken:
+        type: "string"
+        title: "Bitbucket Personal Access Token"
+        description: "Personal Access Token for Bitbucket Server/Data Center"
+  exampleConfig:
+    bitbucketUrl: "https://<your-bitbucket-url>"
+    bitbucketToken: "<your-bitbucket-token>"
 
-# Entry point configuration
-server:
-  main: "./build/infrastructure/index.js"
-  env:
-    ENABLE_HTTP_TRANSPORT: "true"
-    # Add any other required environment variables here
+env:
+  NODE_ENV: "production"
+  ENABLE_HTTP_TRANSPORT: "true"
+  MCP_HTTP_PORT: "3001"
+  MCP_HTTP_ENDPOINT: "/mcp"
 
-# Resource limits (adjust according to your needs)
 resources:
   cpu: "500m"
   memory: "512Mi"

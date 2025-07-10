@@ -108,6 +108,104 @@ docker run -i --rm \
    npm start
    ```
 
+## Using This MCP Server with Smithery CLI
+
+You can use this Bitbucket MCP server locally with the [Smithery CLI](https://smithery.ai/docs). This allows you to connect your AI tools or agents to your self-hosted Bitbucket Server/Data Center. **This server is not hosted on Smithery AI cloud; you must run it yourself (locally or on your own server).**
+
+### Prerequisites
+- Node.js 18 or higher
+- [Smithery CLI](https://smithery.ai/docs/build/getting-started)
+
+### 1. Install Smithery CLI
+```bash
+npm install -g @smithery/cli
+```
+
+### 2. Start the Bitbucket MCP Server Locally
+You must run your own instance of the server (Docker recommended):
+```bash
+docker run -it --rm \
+  -e BITBUCKET_URL="https://your-bitbucket-server.com" \
+  -e BITBUCKET_TOKEN="your_personal_access_token" \
+  -e ENABLE_HTTP_TRANSPORT="true" \
+  -e MCP_HTTP_PORT="3001" \
+  -e MCP_HTTP_ENDPOINT="/mcp" \
+  -p 3001:3001 \
+  ghcr.io/n11tech/mcp-bitbucket:latest
+```
+
+Or, using npm:
+```bash
+npm run start:http
+```
+
+### 3. Connect to Your Local MCP Server with Smithery CLI
+Once your server is running locally, connect to it using the local address:
+```bash
+npx @smithery/cli connect http://localhost:3001/mcp
+```
+
+### 4. Example: Using with Smithery CLI
+Once connected, you can call tools (e.g., list repositories):
+```bash
+npx @smithery/cli call http://localhost:3001/mcp bitbucket_list_repositories --params '{"workspaceSlug": "your-workspace"}'
+```
+
+For more details, see the [Smithery CLI documentation](https://smithery.ai/docs/build/getting-started).
+
+> **Note for Smithery Users:**
+>
+> When connecting to this MCP server via Smithery, you only need to provide:
+> - **Bitbucket Server URL** (e.g., `<your-bitbucket-url>`)
+> - **Bitbucket Personal Access Token**
+>
+> All other environment variables (such as port, endpoint, API key) are managed by the server administrator or deployment and do not need to be set by end users.
+>
+> If the server administrator has enabled API key authentication, you may be asked to provide an API key as well. In that case, enter the value provided by your admin.
+
+**Example:**
+
+When prompted by Smithery, enter:
+```
+bitbucketUrl: <your-bitbucket-url>
+bitbucketToken: <your-bitbucket-token>
+```
+
+## Advanced: Using STDIO Transport
+
+By default, this MCP server is configured for HTTP transport, which is recommended for most users and for Smithery CLI/web integrations.
+
+**Advanced users** who want to run the MCP server as a local subprocess (STDIO transport) can use the following Smithery configuration:
+
+```yaml
+startCommand:
+  type: "stdio"
+  configSchema:
+    type: "object"
+    required: ["bitbucketUrl", "bitbucketToken"]
+    properties:
+      bitbucketUrl:
+        type: "string"
+        description: "The base URL of your self-hosted Bitbucket instance (e.g., https://<your-bitbucket-url>)"
+      bitbucketToken:
+        type: "string"
+        description: "Personal Access Token for Bitbucket Server/Data Center"
+  commandFunction: |-
+    (config) => ({
+      command: 'node',
+      args: ['build/infrastructure/index.js'],
+      env: {
+        BITBUCKET_URL: config.bitbucketUrl,
+        BITBUCKET_TOKEN: config.bitbucketToken
+      }
+    })
+  exampleConfig:
+    bitbucketUrl: "https://<your-bitbucket-url>"
+    bitbucketToken: "<your-bitbucket-token>"
+```
+
+This allows you to launch the MCP server as a subprocess and communicate via standard input/output, which may be useful for certain local agent or automation scenarios.
+
 ## Configuration
 
 ### Environment Variables
@@ -167,7 +265,7 @@ docker run -i --rm \
   -e BITBUCKET_TOKEN="your_personal_access_token" \
   -e ENABLE_HTTP_TRANSPORT="true" \
   -e MCP_HTTP_PORT="3001" \
-  -e MCP_HTTP_ENDPOINT="stream" \
+  -e MCP_HTTP_ENDPOINT="mcp" \
   ghcr.io/n11tech/mcp-bitbucket:latest
 
 # Using npm script
@@ -196,7 +294,7 @@ npm run start:http
         "BITBUCKET_TOKEN": "your_personal_access_token",
         "ENABLE_HTTP_TRANSPORT": "true",
         "MCP_HTTP_PORT": "3001",
-        "MCP_HTTP_ENDPOINT": "stream"
+        "MCP_HTTP_ENDPOINT": "mcp"
       }
     }
   }
@@ -205,8 +303,8 @@ npm run start:http
 
 **HTTP Endpoints:**
 
-- **POST** `http://localhost:3001/stream` - Send MCP requests
-- **GET** `http://localhost:3001/stream` - Server-Sent Events stream
+- **POST** `http://localhost:3001/mcp` - Send MCP requests
+- **GET** `http://localhost:3001/mcp` - Server-Sent Events stream
 - **GET** `http://localhost:3001/health` - Health check endpoint
 
 ## Security
