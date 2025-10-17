@@ -1,33 +1,35 @@
-runtime: "container"
+runtime: container
 
 build:
-  dockerfile: "./Dockerfile"
-  dockerBuildPath: "."
+  dockerfile: ./Dockerfile
+  dockerBuildPath: .
 
 startCommand:
-  type: "http"
+  type: http
   configSchema:
-    type: "object"
-    required: ["bitbucketUrl", "bitbucketToken"]
+    type: object
+    required:
+      - bitbucketUrl
+      - bitbucketToken
     properties:
       bitbucketUrl:
-        type: "string"
-        title: "Bitbucket Server URL"
-        description: "The base URL of your self-hosted Bitbucket instance (e.g., https://<your-bitbucket-url>)"
+        type: string
+        title: Bitbucket Server URL
+        description: The base URL of your self-hosted Bitbucket instance (e.g., https://<your-bitbucket-url>)
       bitbucketToken:
-        type: "string"
-        title: "Bitbucket Personal Access Token"
-        description: "Personal Access Token for Bitbucket Server/Data Center"
+        type: string
+        title: Bitbucket Personal Access Token
+        description: Personal Access Token for Bitbucket Server/Data Center
   exampleConfig:
-    bitbucketUrl: "https://<your-bitbucket-url>"
-    bitbucketToken: "<your-bitbucket-token>"
+    bitbucketUrl: https://<your-bitbucket-url>
+    bitbucketToken: <your-bitbucket-token>
 
 env:
-  NODE_ENV: "production"
+  NODE_ENV: production
   ENABLE_HTTP_TRANSPORT: "true"
   MCP_HTTP_PORT: "3001"
-  MCP_HTTP_ENDPOINT: "/mcp"
+  MCP_HTTP_ENDPOINT: /mcp
 
 resources:
-  cpu: "500m"
-  memory: "512Mi"
+  cpu: 500m
+  memory: 512Mi
