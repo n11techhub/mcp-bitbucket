@@ -15,6 +15,7 @@ import { TYPES } from '../types.js';
 export class RepositoryClient implements IRepositoryClient {
     private readonly api: AxiosInstance;
     private readonly logger: winston.Logger;
+    private readonly defaultProject: string | undefined;
 
     constructor(
         @inject(TYPES.BitbucketConfig) config: BitbucketConfig, 
@@ -30,6 +31,7 @@ export class RepositoryClient implements IRepositoryClient {
                 ? { username: config.username, password: config.password }
                 : undefined,
         });
+        this.defaultProject = config.defaultProject
     }
 
     public async listBitbucketRepositories(input: ListRepositoriesInput = {}): Promise<any> {
@@ -194,7 +196,6 @@ export class RepositoryClient implements IRepositoryClient {
     }
 
     private getDefaultProjectKey(): string | undefined {
-        // This method is a placeholder. In a real scenario, you would get this from the config.
-        return undefined;
+        return this.defaultProject
     }
 }
