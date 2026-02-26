@@ -55,7 +55,7 @@ export class RepositoryClient implements IRepositoryClient {
 
         try {
             this.logger.info(`Listing repositories with projectKey: ${projectKey}, params: ${JSON.stringify(params)}`);
-            const response = await this.api.get(`/projects/${projectKey}/repos`, { params });
+            const response = await this.api.get(`/projects/${encodeURIComponent(projectKey)}/repos`, { params });
             return {
                 content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
             };
@@ -87,7 +87,7 @@ export class RepositoryClient implements IRepositoryClient {
         try {
             this.logger.info(`Listing branches with projectKey: ${projectKey}, repoSlug: ${repoSlug}, params: ${JSON.stringify(params)}`);
             const response = await this.api.get(
-                `/projects/${projectKey}/repos/${repoSlug}/branches`,
+                `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/branches`,
                 { params }
             );
             return {
@@ -113,7 +113,7 @@ export class RepositoryClient implements IRepositoryClient {
         try {
             this.logger.info(`Creating branch with projectKey: ${projectKey}, repoSlug: ${repoSlug}, newBranchName: ${newBranchName}, source: ${sourceBranchOrCommit}`);
             const response = await this.api.post(
-                `/projects/${projectKey}/repos/${repoSlug}/branches`,
+                `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/branches`,
                 {
                     name: newBranchName,
                     startPoint: sourceBranchOrCommit ?? 'main'
@@ -138,7 +138,8 @@ export class RepositoryClient implements IRepositoryClient {
     public async getBitbucketFileContent(input: GetFileInput): Promise<any> {
         const { workspaceSlug, repoSlug, filePath, revision } = input;
         const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey
-        let apiUrl = `/projects/${projectKey}/repos/${repoSlug}/raw/${filePath.startsWith('/') ? filePath.substring(1) : filePath}`;
+        const sanitizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+        let apiUrl = `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/raw/${encodeURIComponent(sanitizedPath)}`;
 
         const params: any = {};
         if (revision) {
@@ -174,7 +175,7 @@ export class RepositoryClient implements IRepositoryClient {
     public async getBitbucketRepositoryDetails(input: GetRepoInput): Promise<any> {
         const { workspaceSlug, repoSlug } = input;
         const projectKey = workspaceSlug;
-        const apiUrl = `/projects/${projectKey}/repos/${repoSlug}`;
+        const apiUrl = `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}`;
 
         try {
             this.logger.info(`Getting repository details with apiUrl: ${apiUrl}`);
@@ -196,6 +197,6 @@ export class RepositoryClient implements IRepositoryClient {
     }
 
     private getDefaultProjectKey(): string | undefined {
-        return this.defaultProject
+        return this.defaultProject ?? undefined;
     }
 }

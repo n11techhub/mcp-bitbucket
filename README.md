@@ -1,13 +1,39 @@
 # mcp-bitbucket
 
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.1-blue)
 [![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-n11tech%2Fmcp--bitbucket-blue?logo=github&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/pkgs/container/mcp-bitbucket)
 [![Docker Build](https://img.shields.io/github/actions/workflow/status/n11tech/mcp-bitbucket/docker-publish.yml?branch=main&label=Docker%20Build&logo=docker&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/actions/workflows/docker-publish.yml)
 
 **A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Bitbucket Server/Data Center.**
 
 This server enables AI systems (e.g., LLMs, AI coding assistants) to securely interact with your self-hosted Bitbucket repositories, pull requests, projects, and code in real time through both standard stdio and HTTP streaming transports.
+
+## Version 1.0.1 Release Notes
+
+**Security Improvements & Bug Fixes** (February 2026)
+
+This release includes critical security enhancements and implements the `BITBUCKET_DEFAULT_PROJECT` feature:
+
+### 🔒 Security Enhancements
+- **Input Validation**: Added strict regex validation for project keys and workspace slugs to prevent path traversal and injection attacks
+- **URL Encoding**: All API path parameters are now properly URL-encoded to prevent path manipulation
+- **Environment Variable Validation**: `BITBUCKET_DEFAULT_PROJECT` is validated and sanitized before use
+- **Comprehensive Security Tests**: Added extensive test coverage for path traversal, SQL injection, command injection, and DoS attacks
+
+### 🐛 Bug Fixes
+- **Fixed**: `BITBUCKET_DEFAULT_PROJECT` environment variable was being ignored (PR #1)
+- **Fixed**: `getDefaultProjectKey()` method now properly returns the configured default project instead of always returning `undefined`
+
+### 📚 Documentation
+- Added security notes for `BITBUCKET_DEFAULT_PROJECT` configuration
+- Documented valid and invalid project key formats
+- Added multi-tenant environment warnings
+
+### ⚠️ Breaking Changes
+None - all changes are backward compatible.
+
+---
 
 ## Table of Contents
 
@@ -214,10 +240,34 @@ This allows you to launch the MCP server as a subprocess and communicate via sta
 |----------|-------------|---------|----------|
 | `BITBUCKET_URL` | Your Bitbucket Server/Data Center URL | - | ✅ |
 | `BITBUCKET_TOKEN` | Personal Access Token | - | ✅ |
+| `BITBUCKET_DEFAULT_PROJECT` | Default project key for operations (see Security Notes below) | - | ❌ |
 | `ENABLE_HTTP_TRANSPORT` | Enable HTTP streaming transport | `false` | ❌ |
 | `MCP_HTTP_PORT` | HTTP server port | `3001` | ❌ |
 | `MCP_HTTP_ENDPOINT` | HTTP endpoint path | `/stream` | ❌ |
 | `MCP_API_KEY` | API key for authentication | - | ❌ |
+
+#### Security Notes for `BITBUCKET_DEFAULT_PROJECT`
+
+**⚠️ Important Security Considerations:**
+
+- **Input Validation**: The `BITBUCKET_DEFAULT_PROJECT` value is automatically validated to prevent path traversal and injection attacks. Only alphanumeric characters, hyphens, and underscores are allowed.
+- **Multi-Tenant Environments**: In shared or multi-tenant deployments, be aware that the default project applies globally to all requests that don't specify a `workspaceSlug`. Consider using explicit workspace slugs in API calls instead.
+- **Valid Format**: Project keys must match the pattern `^[A-Z0-9_-]+$` (case-insensitive) and be between 1-255 characters.
+- **Invalid Values**: If an invalid project key is provided, the server will log an error and ignore the value, requiring explicit `workspaceSlug` in all API calls.
+
+**Example Valid Values:**
+```bash
+BITBUCKET_DEFAULT_PROJECT=MYPROJECT
+BITBUCKET_DEFAULT_PROJECT=my-project-123
+BITBUCKET_DEFAULT_PROJECT=TEAM_ALPHA
+```
+
+**Example Invalid Values (will be rejected):**
+```bash
+BITBUCKET_DEFAULT_PROJECT=../../../admin  # Path traversal attempt
+BITBUCKET_DEFAULT_PROJECT=PROJ; rm -rf /  # Command injection attempt
+BITBUCKET_DEFAULT_PROJECT=PROJ/test       # Contains invalid character
+```
 
 ### MCP Client Setup
 

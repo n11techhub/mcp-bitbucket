@@ -3,6 +3,7 @@ import { TYPES } from './types.js';
 import { BitbucketConfig } from './config/BitbucketConfig.js';
 import logger from './logging/logger.js';
 import winston from 'winston';
+import { validateProjectKey } from './utils/validation.js';
 
 // Clients
 import { IBitbucketClientFacade } from '../application/facade/IBitbucketClientFacade.js';
@@ -29,12 +30,22 @@ import { McpHttpServer } from './http/McpHttpServer.js';
 const container = new Container();
 
 // Configuration
+// Validate and sanitize defaultProject to prevent security vulnerabilities
+let validatedDefaultProject: string | undefined;
+try {
+    validatedDefaultProject = validateProjectKey(process.env.BITBUCKET_DEFAULT_PROJECT);
+} catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    logger.error(`Invalid BITBUCKET_DEFAULT_PROJECT environment variable: ${message}`);
+    validatedDefaultProject = undefined;
+}
+
 const bitbucketConfig: BitbucketConfig = {
     baseUrl: process.env.BITBUCKET_URL ?? '',
     token: process.env.BITBUCKET_TOKEN,
     username: process.env.BITBUCKET_USERNAME,
     password: process.env.BITBUCKET_PASSWORD,
-    defaultProject: process.env.BITBUCKET_DEFAULT_PROJECT
+    defaultProject: validatedDefaultProject
 };
 container.bind<BitbucketConfig>(TYPES.BitbucketConfig).toConstantValue(bitbucketConfig);
 
