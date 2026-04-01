@@ -15,6 +15,7 @@ export interface IBitbucketClientFacade {
     searchBitbucketContent(input: dtos.SearchContentInputType): Promise<any>;
     getBitbucketRepositoryDetails(input: dtos.GetRepoInputType): Promise<any>;
     getBitbucketFileContent(input: dtos.GetFileInputType): Promise<any>;
+    browseBitbucketDirectory(input: dtos.BrowseDirectoryInputType): Promise<any>;
     createBitbucketBranch(input: dtos.AddBranchInputType): Promise<any>;
     addBitbucketPullRequestFileLineComment(input: dtos.AddPrCommentInputType): Promise<any>;
     listBitbucketRepositoryBranches(input: dtos.ListBranchesInputType): Promise<any>;

@@ -1,6 +1,7 @@
 export * from './AddBranchInput.js';
 export * from './AddCommentInput.js';
 export * from './AddPrCommentInput.js';
+export * from './BrowseDirectoryInput.js';
 export * from './CreatePullRequestInput.js';
 export * from './DeclinePullRequestInput.js';
 export * from './GetDiffInput.js';

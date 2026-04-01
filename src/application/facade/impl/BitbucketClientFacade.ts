@@ -12,6 +12,7 @@ import { AddPrCommentInput } from "../../../domain/contracts/input/AddPrCommentI
 import { AddBranchInput } from "../../../domain/contracts/input/AddBranchInput.js";
 import { GetFileInput } from "../../../domain/contracts/input/GetFileInput.js";
 import { GetRepoInput } from "../../../domain/contracts/input/GetRepoInput.js";
+import { BrowseDirectoryInput } from "../../../domain/contracts/input/BrowseDirectoryInput.js";
 import { GetUserInputType } from "../../../domain/contracts/schemas/index.js";
 import { IBitbucketClientFacade } from '../IBitbucketClientFacade.js';
 import { IPullRequestClient } from '../../../domain/repository/IPullRequestClient.js';
@@ -100,6 +101,10 @@ export class BitbucketClientFacade implements IBitbucketClientFacade {
 
     public async getBitbucketFileContent(input: GetFileInput): Promise<any> {
         return this.repositoryClient.getBitbucketFileContent(input);
+    }
+
+    public async browseBitbucketDirectory(input: BrowseDirectoryInput): Promise<any> {
+        return this.repositoryClient.browseBitbucketDirectory(input);
     }
 
     public async getBitbucketRepositoryDetails(input: GetRepoInput): Promise<any> {

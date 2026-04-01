@@ -1,5 +1,6 @@
 import {GetRepoInputSchema} from "../../domain/contracts/schemas/GetRepoInputSchema.js";
 import {GetFileInputSchema} from "../../domain/contracts/schemas/GetFileInputSchema.js";
+import {BrowseDirectoryInputSchema} from "../../domain/contracts/schemas/BrowseDirectoryInputSchema.js";
 import {AddBranchInputSchema} from "../../domain/contracts/schemas/AddBranchInputSchema.js";
 import {AddPrCommentInputSchema} from "../../domain/contracts/schemas/AddPrCommentInputSchema.js";
 import {ListBranchesInputSchema} from "../../domain/contracts/schemas/ListBranchesInputSchema.js";
@@ -129,6 +130,12 @@ export class McpServerSetup {
                 description: 'Gets the content of a specific file from a Bitbucket repository.',
                 inputSchema: zodToJsonSchema(GetFileInputSchema),
                 handler: this.createValidatedHandler('bitbucket_get_file_content', GetFileInputSchema, this.bitbucketUseCase.bitbucketGetFileContent.bind(this.bitbucketUseCase))
+            },
+            {
+                name: 'bitbucket_browse_directory',
+                description: 'Browses a directory in a Bitbucket repository. Returns metadata about files and subdirectories (names, types, sizes) without fetching file contents. Omit path parameter or use ".", "/" for root directory listing.',
+                inputSchema: zodToJsonSchema(BrowseDirectoryInputSchema),
+                handler: this.createValidatedHandler('bitbucket_browse_directory', BrowseDirectoryInputSchema, this.bitbucketUseCase.bitbucketBrowseDirectory.bind(this.bitbucketUseCase))
             },
             {
                 name: 'bitbucket_create_branch',

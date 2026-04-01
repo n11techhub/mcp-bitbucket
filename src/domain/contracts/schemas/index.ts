@@ -1,6 +1,7 @@
 export * from './AddBranchInputSchema.js';
 export * from './AddCommentInputSchema.js';
 export * from './AddPrCommentInputSchema.js';
+export * from './BrowseDirectoryInputSchema.js';
 export * from './CommentOptionSchema.js';
 export * from './CreatePullRequestInputSchema.js';
 export * from './DeclinePullRequestInputSchema.js';

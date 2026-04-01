@@ -5,6 +5,7 @@ import { ListBranchesInput } from '../../domain/contracts/input/ListBranchesInpu
 import { AddBranchInput } from '../../domain/contracts/input/AddBranchInput.js';
 import { GetFileInput } from '../../domain/contracts/input/GetFileInput.js';
 import { GetRepoInput } from '../../domain/contracts/input/GetRepoInput.js';
+import { BrowseDirectoryInput } from '../../domain/contracts/input/BrowseDirectoryInput.js';
 import { IRepositoryClient } from '../../domain/repository/IRepositoryClient.js';
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import winston from 'winston';
@@ -193,6 +194,43 @@ export class RepositoryClient implements IRepositoryClient {
                 );
             }
             throw new McpError(ErrorCode.InternalError, `Failed to get repository: ${error.message}`);
+        }
+    }
+
+    public async browseBitbucketDirectory(input: BrowseDirectoryInput): Promise<any> {
+        const { workspaceSlug, repoSlug, path, revision } = input;
+        const projectKey = workspaceSlug;
+
+        // Normalize path: empty, ".", or "/" should result in no path parameter (root)
+        const isRoot = !path || path === '.' || path === '/' || path.trim() === '';
+        const normalizedPath = isRoot ? undefined : (path.startsWith('/') ? path.substring(1) : path);
+
+        let apiUrl = `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/browse`;
+        if (normalizedPath) {
+            apiUrl += `/${encodeURIComponent(normalizedPath)}`;
+        }
+
+        const params: any = {};
+        if (revision) {
+            params.at = revision;
+        }
+
+        try {
+            this.logger.info(`Browsing directory with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
+            const response = await this.api.get(apiUrl, { params });
+            return {
+                content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+            };
+        } catch (error: any) {
+            this.logger.error(`Error browsing directory (projectKey: ${projectKey}, repoSlug: ${repoSlug}, path: ${path}):`, error.response?.data ?? error.message);
+            if (axios.isAxiosError(error) && error.response) {
+                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
+                throw new McpError(
+                    ErrorCode.InternalError,
+                    `Bitbucket API error: ${errorMessage}`
+                );
+            }
+            throw new McpError(ErrorCode.InternalError, `Failed to browse directory: ${error.message}`);
         }
     }
 

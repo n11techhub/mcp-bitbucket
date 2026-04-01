@@ -1,13 +1,43 @@
 # mcp-bitbucket
 
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-1.0.1-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 [![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-n11tech%2Fmcp--bitbucket-blue?logo=github&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/pkgs/container/mcp-bitbucket)
 [![Docker Build](https://img.shields.io/github/actions/workflow/status/n11tech/mcp-bitbucket/docker-publish.yml?branch=main&label=Docker%20Build&logo=docker&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/actions/workflows/docker-publish.yml)
 
 **A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Bitbucket Server/Data Center.**
 
 This server enables AI systems (e.g., LLMs, AI coding assistants) to securely interact with your self-hosted Bitbucket repositories, pull requests, projects, and code in real time through both standard stdio and HTTP streaming transports.
+
+## Version 1.1.0 Release Notes
+
+**New Feature: Directory Browsing & Security Fix** (April 2026)
+
+This release adds directory browsing capabilities and fixes a critical path traversal vulnerability:
+
+### ✨ New Features
+- **Directory Browsing Tool**: Added `bitbucket_browse_directory` tool for exploring repository structure
+  - Browse root directory with empty path, `.`, or `/`
+  - Navigate subdirectories efficiently
+  - Returns file/folder metadata without fetching content (lightweight operation)
+  - Enables AI agents to discover repository structure autonomously
+  - Resolves [Issue #2](https://github.com/n11techhub/mcp-bitbucket/issues/2)
+
+### 🔒 Security Fixes
+- **CRITICAL**: Fixed path traversal vulnerability in `browseBitbucketDirectory` path parameter
+  - Added validation to block `..` sequences (path traversal prevention)
+  - Added control character filtering to prevent null byte injection
+  - Added path length limits (max 1000 characters) to prevent DoS attacks
+  - Multi-layer defense: schema validation + URL encoding + API-level checks
+
+### 📚 Documentation
+- Added `bitbucket_browse_directory` tool to Available Tools section
+- Updated security documentation with path validation details
+
+### ⚠️ Breaking Changes
+None - all changes are backward compatible.
+
+---
 
 ## Version 1.0.1 Release Notes
 
@@ -466,6 +496,7 @@ This server provides a comprehensive suite of tools for interacting with Bitbuck
 - `bitbucket_get_repository_details` - Get repository information
 - `bitbucket_search_content` - Search within repositories
 - `bitbucket_get_file_content` - Read file contents
+- `bitbucket_browse_directory` - Browse directory contents (returns file/folder metadata without content)
 
 ### Branch Management
 - `bitbucket_create_branch` - Create new branches

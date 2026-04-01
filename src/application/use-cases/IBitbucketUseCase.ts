@@ -14,6 +14,7 @@ export interface IBitbucketUseCase {
     bitbucketSearchContent(input: dtos.SearchContentInputType): Promise<any>;
     bitbucketGetRepositoryDetails(input: dtos.GetRepoInputType): Promise<any>;
     bitbucketGetFileContent(input: dtos.GetFileInputType): Promise<any>;
+    bitbucketBrowseDirectory(input: dtos.BrowseDirectoryInputType): Promise<any>;
     bitbucketCreateBranch(input: dtos.AddBranchInputType): Promise<any>;
     bitbucketAddPullRequestFileLineComment(input: dtos.AddPrCommentInputType): Promise<any>;
     bitbucketListRepositoryBranches(input: dtos.ListBranchesInputType): Promise<any>;

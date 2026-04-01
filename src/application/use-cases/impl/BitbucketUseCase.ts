@@ -15,6 +15,7 @@ import {
     SearchContentInput,
     GetRepoInput,
     GetFileInput,
+    BrowseDirectoryInput,
     AddBranchInput,
     AddPrCommentInput,
     ListBranchesInput,
@@ -130,6 +131,10 @@ export class BitbucketUseCase implements IBitbucketUseCase {
 
     async bitbucketGetFileContent(input: GetFileInput): Promise<any> {
         return this.bitbucketClient.getBitbucketFileContent(input);
+    }
+
+    async bitbucketBrowseDirectory(input: BrowseDirectoryInput): Promise<any> {
+        return this.bitbucketClient.browseBitbucketDirectory(input);
     }
 
     async bitbucketCreateBranch(input: AddBranchInput): Promise<any> {
