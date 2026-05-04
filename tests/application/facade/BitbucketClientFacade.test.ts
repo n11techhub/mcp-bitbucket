@@ -59,7 +59,8 @@ describe('BitbucketClientFacade', () => {
             listBitbucketRepositoryBranches: jest.fn(),
             createBitbucketBranch: jest.fn(),
             getBitbucketFileContent: jest.fn(),
-            getBitbucketRepositoryDetails: jest.fn()
+            getBitbucketRepositoryDetails: jest.fn(),
+            browseBitbucketDirectory: jest.fn()
         };
 
         mockWorkspaceClient = {

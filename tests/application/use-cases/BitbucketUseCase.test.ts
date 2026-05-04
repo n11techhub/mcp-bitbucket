@@ -53,7 +53,8 @@ describe('BitbucketUseCase', () => {
             addBitbucketPullRequestFileLineComment: jest.fn(),
             listBitbucketRepositoryBranches: jest.fn(),
             getBitbucketUserDetails: jest.fn(),
-            getDefaultProjectKey: jest.fn()
+            getDefaultProjectKey: jest.fn(),
+            browseBitbucketDirectory: jest.fn()
         };
 
         bitbucketUseCase = new BitbucketUseCase(mockBitbucketClient);

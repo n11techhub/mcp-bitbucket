@@ -35,6 +35,7 @@ const mockApi: jest.Mocked<IBitbucketClientFacade> = {
     listBitbucketRepositoryBranches: jest.fn(),
     getBitbucketUserDetails: jest.fn(),
     getDefaultProjectKey: jest.fn(),
+    browseBitbucketDirectory: jest.fn(),
 };
 
 const mockBitbucketUseCase: jest.Mocked<IBitbucketUseCase> = {
@@ -54,6 +55,7 @@ const mockBitbucketUseCase: jest.Mocked<IBitbucketUseCase> = {
     bitbucketAddPullRequestFileLineComment: jest.fn(),
     bitbucketListRepositoryBranches: jest.fn(),
     bitbucketGetUserDetails: jest.fn(),
+    bitbucketBrowseDirectory: jest.fn(),
 };
 
 const mockLogger: jest.Mocked<winston.Logger> = {
@@ -221,7 +223,7 @@ describe('McpServerSetup', () => {
         it('ListTools handler should return available tools', async () => {
             const result = await listToolsHandler();
             expect(result.tools).toBeInstanceOf(Array);
-            expect(result.tools.length).toBe(16);
+            expect(result.tools.length).toBe(17);
             expect(result.tools[0]).toHaveProperty('name');
             expect(result.tools[0]).toHaveProperty('description');
             expect(result.tools[0]).toHaveProperty('inputSchema');
