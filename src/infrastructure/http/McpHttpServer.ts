@@ -4,6 +4,7 @@ import {z} from 'zod';
 import {TYPES} from '../types.js';
 import {McpServerSetup} from '../setup/McpServerSetup.js';
 import {McpHttpTransport} from './McpHttpTransport.js';
+import {sanitizeSchema} from './schemaSanitizer.js';
 
 const McpRequestSchema = z.object({
     jsonrpc: z.literal('2.0'),
@@ -169,10 +170,14 @@ export class McpHttpServer {
     private _handleToolsList(request: McpRequest) {
         this.logger.info('Handling tools/list request');
         const tools = this.mcpServerSetup.getAvailableTools();
+        const sanitizedTools = tools.map((tool: any) => ({
+            ...tool,
+            inputSchema: sanitizeSchema(tool.inputSchema),
+        }));
         return {
             jsonrpc: "2.0",
             id: request.id,
-            result: {tools}
+            result: {tools: sanitizedTools}
         };
     }
 

@@ -1,13 +1,38 @@
 # mcp-bitbucket
 
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-1.1.0-blue)
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
 [![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-n11tech%2Fmcp--bitbucket-blue?logo=github&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/pkgs/container/mcp-bitbucket)
 [![Docker Build](https://img.shields.io/github/actions/workflow/status/n11tech/mcp-bitbucket/docker-publish.yml?branch=main&label=Docker%20Build&logo=docker&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/actions/workflows/docker-publish.yml)
 
 **A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Bitbucket Server/Data Center.**
 
 This server enables AI systems (e.g., LLMs, AI coding assistants) to securely interact with your self-hosted Bitbucket repositories, pull requests, projects, and code in real time through both standard stdio and HTTP streaming transports.
+
+## Version 1.2.0 Release Notes
+
+**LLM Compatibility: Google Gemini Schema Sanitizer** (May 2026)
+
+This release fixes a known interoperability issue where Google Gemini-based MCP clients (e.g. n8n MCP Client with Gemini, Vertex AI function calling) reject tool schemas emitted by this server.
+
+### ✨ New Features
+- **Gemini-Compatible `tools/list` Output**: Tool `inputSchema` payloads are now normalized server-side so they validate against Gemini's stricter JSON Schema subset.
+  - JSON Schema unions expressed as `type: ["string", "null"]` are automatically rewritten to `anyOf: [{type: "string"}, {type: "null"}]`.
+  - Anthropic Claude and OpenAI ChatGPT clients are unaffected (the rewritten form is semantically equivalent and natively supported).
+  - Eliminates the need for downstream workarounds such as n8n Code-node sanitizers.
+
+### 🔒 Security Hardening
+- **Prototype Pollution Defense**: Schema sanitizer skips `__proto__`, `prototype`, and `constructor` keys and uses `Object.create(null)` as the recursion accumulator.
+- **Recursion Depth Cap**: Sanitizer bounds recursion at depth 64 to prevent stack-overflow DoS on hostile or cyclic schema input.
+- **Pure Transformation**: Sanitizer never mutates caller input and performs no I/O, logging, or credential handling.
+
+### 📚 Documentation
+- Documented Gemini interoperability fix in release notes.
+
+### ⚠️ Breaking Changes
+None - all changes are backward compatible.
+
+---
 
 ## Version 1.1.0 Release Notes
 
