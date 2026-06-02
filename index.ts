@@ -8,6 +8,7 @@ import { Types } from './src/application/Types.js';
 import { McpHttpServer } from './src/infrastructure/http-streaming/McpHttpServer.js';
 import type { IMcpServerFactory } from './src/application/factory/IMcpServerFactory.js';
 
+
 async function main() {
     const logger = container.get<winston.Logger>(Types.Logger);
     try {

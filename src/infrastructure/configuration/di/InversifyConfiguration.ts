@@ -42,8 +42,13 @@ try {
     validatedDefaultProject = undefined;
 }
 
+if (!process.env.BITBUCKET_URL) {
+    loggerConfiguration.error('BITBUCKET_URL environment variable is required but not set.');
+    process.exit(1);
+}
+
 const configuration: Configuration = {
-    baseUrl: process.env.BITBUCKET_URL ?? '',
+    baseUrl: process.env.BITBUCKET_URL,
     token: process.env.BITBUCKET_TOKEN,
     username: process.env.BITBUCKET_USERNAME,
     password: process.env.BITBUCKET_PASSWORD,
