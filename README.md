@@ -1,13 +1,42 @@
 # mcp-bitbucket
 
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-1.2.0-blue)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
 [![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-n11tech%2Fmcp--bitbucket-blue?logo=github&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/pkgs/container/mcp-bitbucket)
 [![Docker Build](https://img.shields.io/github/actions/workflow/status/n11tech/mcp-bitbucket/docker-publish.yml?branch=main&label=Docker%20Build&logo=docker&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/actions/workflows/docker-publish.yml)
 
 **A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Bitbucket Server/Data Center.**
 
 This server enables AI systems (e.g., LLMs, AI coding assistants) to securely interact with your self-hosted Bitbucket repositories, pull requests, projects, and code in real time through both standard stdio and HTTP streaming transports.
+
+## Version 2.0.0 Release Notes
+
+**Major Core Refactor & Transport Alignment** (June 2026)
+
+This major release reflects substantial changes in the core architecture and runtime behavior of the server to improve maintainability, consistency, and protocol alignment for Bitbucket-focused deployments.
+
+### ✨ Core Improvements
+- **Core Application Refactor**: Internal layering and wiring were reorganized around cleaner boundaries across application, domain, and infrastructure modules.
+- **MCP SDK HTTP Streaming Model Adoption**: The transport/session lifecycle now follows MCP SDK's `StreamableHTTPServerTransport` pattern instead of a fully custom session-management flow.
+- **HTTP Streaming Stabilization**: Session lifecycle handling was improved for initialize/connect/close flows and more predictable session cleanup.
+- **Bitbucket Service Identity Cleanup**: Runtime logs and service naming were aligned to Bitbucket terminology.
+- **Type-Safety Hardening**: Core infrastructure paths use stricter typing and safer error handling patterns.
+
+### 📦 Runtime & Dependency Updates
+- **Node.js Runtime Baseline Updated**: Runtime expectations were refreshed; use the version declared in `package.json` under `engines`.
+- **Dependency Refresh**: Core/runtime and development dependencies were upgraded to newer versions for compatibility, security, and maintainability.
+
+### ⚠️ Breaking Changes
+- **Major Version Bump**: Package version moved to `2.0.0` to reflect core-level changes.
+- **Package Rename**: NPM package metadata now uses `mcp-bitbucket`.
+
+### Migration Notes
+- If you pin package metadata or release automation to the old package name, update it to `mcp-bitbucket`.
+- HTTP transport internals now align with MCP SDK session semantics; if you depended on custom session handling behavior, re-validate your client integration.
+- HTTP startup command remains available as `npm run start:http`; `npm run start:http-streaming` is kept as a compatibility alias.
+- Reinstall dependencies after upgrade to pick up new transitive versions (`rm -rf node_modules && npm install`).
+
+---
 
 ## Version 1.2.0 Release Notes
 
@@ -126,7 +155,7 @@ Model Context Protocol (MCP) is an open standard for securely connecting AI syst
 
 ## Prerequisites
 
-- **Node.js**: Version 18.x or higher
+- **Node.js**: Version defined by `package.json` `engines` (currently `>=18`)
 - **Bitbucket Server/Data Center**: Access with a Personal Access Token (PAT)
 - **Docker**: (Recommended) For containerized deployment
 - **Git**: For cloning the repository
@@ -194,7 +223,7 @@ docker run -i --rm \
 You can use this Bitbucket MCP server locally with the [Smithery CLI](https://smithery.ai/docs). This allows you to connect your AI tools or agents to your self-hosted Bitbucket Server/Data Center. **This server is not hosted on Smithery AI cloud; you must run it yourself (locally or on your own server).**
 
 ### Prerequisites
-- Node.js 18 or higher
+- Node.js version defined by `package.json` `engines` (currently `>=18`)
 - [Smithery CLI](https://smithery.ai/docs/build/getting-started)
 
 ### 1. Install Smithery CLI
@@ -487,7 +516,7 @@ await callTool('bitbucket_get_pull_request_details', {
 ### Repository Operations
 
 ```javascript
-// Search repository content
+// Search gateway content
 await callTool('bitbucket_search_content', {
   workspaceSlug: 'my-workspace',
   query: 'authentication',

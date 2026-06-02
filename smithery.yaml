@@ -5,7 +5,7 @@ build:
   dockerBuildPath: .
 
 startCommand:
-  type: http
+  type: http-streaming
   configSchema:
     type: object
     required:

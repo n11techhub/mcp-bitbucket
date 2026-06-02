@@ -29,6 +29,6 @@ module.exports = {
     'node_modules/', // Ignore node_modules
     'coverage/',     // Ignore coverage reports
     'dist/',         // Commonly used for distribution files
-    '.eslintrc.cjs',  // ESLint should not lint its own config file by default with this setup
+    '.eslintrc.cjs',  // ESLint should not lint its own configuration file by default with this setup
   ],
 };

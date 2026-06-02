@@ -1,26 +1,26 @@
 import { injectable, inject } from 'inversify';
-import { BitbucketConfig } from "../../../infrastructure/config/BitbucketConfig.js";
-import { PullRequestInput } from "../../../domain/contracts/input/PullRequestInput.js";
-import { PullRequestParams } from "../../../domain/contracts/input/PullRequestParams.js";
+import { PullRequestInput } from "../../../domain/contracts/input/index.js";
+import { PullRequestParams } from "../../../domain/contracts/input/index.js";
 import { MergeOption } from "../../../domain/contracts/option/MergeOption.js";
 import { CommentOption } from "../../../domain/contracts/option/CommentOption.js";
-import { ListRepositoriesInput } from "../../../domain/contracts/input/ListRepositoriesInput.js";
-import { ListWorkspacesInput } from "../../../domain/contracts/input/ListWorkspacesInput.js";
-import { SearchContentInput } from "../../../domain/contracts/input/SearchContentInput.js";
-import { ListBranchesInput } from "../../../domain/contracts/input/ListBranchesInput.js";
-import { AddPrCommentInput } from "../../../domain/contracts/input/AddPrCommentInput.js";
-import { AddBranchInput } from "../../../domain/contracts/input/AddBranchInput.js";
-import { GetFileInput } from "../../../domain/contracts/input/GetFileInput.js";
-import { GetRepoInput } from "../../../domain/contracts/input/GetRepoInput.js";
-import { BrowseDirectoryInput } from "../../../domain/contracts/input/BrowseDirectoryInput.js";
+import { ListRepositoriesInput } from "../../../domain/contracts/input/index.js";
+import { ListWorkspacesInput } from "../../../domain/contracts/input/index.js";
+import { SearchContentInput } from "../../../domain/contracts/input/index.js";
+import { ListBranchesInput } from "../../../domain/contracts/input/index.js";
+import { AddPrCommentInput } from "../../../domain/contracts/input/index.js";
+import { AddBranchInput } from "../../../domain/contracts/input/index.js";
+import { GetFileInput } from "../../../domain/contracts/input/index.js";
+import { GetRepoInput } from "../../../domain/contracts/input/index.js";
+import { BrowseDirectoryInput } from "../../../domain/contracts/input/index.js";
 import { GetUserInputType } from "../../../domain/contracts/schemas/index.js";
 import { IBitbucketClientFacade } from '../IBitbucketClientFacade.js';
-import { IPullRequestClient } from '../../../domain/repository/IPullRequestClient.js';
-import { IRepositoryClient } from '../../../domain/repository/IRepositoryClient.js';
-import { IWorkspaceClient } from '../../../domain/repository/IWorkspaceClient.js';
-import { ISearchClient } from '../../../domain/repository/ISearchClient.js';
-import { IUserClient } from '../../../domain/repository/IUserClient.js';
-import { TYPES } from '../../../infrastructure/types.js';
+import { IPullRequestClient } from '../../../domain/gateway/IPullRequestClient.js';
+import { IRepositoryClient } from '../../../domain/gateway/IRepositoryClient.js';
+import { IWorkspaceClient } from '../../../domain/gateway/IWorkspaceClient.js';
+import { ISearchClient } from '../../../domain/gateway/ISearchClient.js';
+import { IUserClient } from '../../../domain/gateway/IUserClient.js';
+import {Configuration} from "../../../infrastructure/configuration/Configuration.js";
+import {Types} from "../../Types.js";
 
 @injectable()
 export class BitbucketClientFacade implements IBitbucketClientFacade {
@@ -29,17 +29,17 @@ export class BitbucketClientFacade implements IBitbucketClientFacade {
     private readonly workspaceClient: IWorkspaceClient;
     private readonly searchClient: ISearchClient;
     private readonly userClient: IUserClient;
-    readonly config: BitbucketConfig;
+    readonly config: Configuration;
 
     constructor(
-        @inject(TYPES.BitbucketConfig) config: BitbucketConfig,
-        @inject(TYPES.IPullRequestClient) pullRequestClient: IPullRequestClient,
-        @inject(TYPES.IRepositoryClient) repositoryClient: IRepositoryClient,
-        @inject(TYPES.IWorkspaceClient) workspaceClient: IWorkspaceClient,
-        @inject(TYPES.ISearchClient) searchClient: ISearchClient,
-        @inject(TYPES.IUserClient) userClient: IUserClient
+        @inject(Types.Configuration) configuration: Configuration,
+        @inject(Types.IPullRequestClient) pullRequestClient: IPullRequestClient,
+        @inject(Types.IRepositoryClient) repositoryClient: IRepositoryClient,
+        @inject(Types.IWorkspaceClient) workspaceClient: IWorkspaceClient,
+        @inject(Types.ISearchClient) searchClient: ISearchClient,
+        @inject(Types.IUserClient) userClient: IUserClient
     ) {
-        this.config = config;
+        this.config = configuration;
         this.pullRequestClient = pullRequestClient;
         this.repositoryClient = repositoryClient;
         this.workspaceClient = workspaceClient;

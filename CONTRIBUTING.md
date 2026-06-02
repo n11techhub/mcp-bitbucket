@@ -27,7 +27,7 @@ Thank you for your interest in contributing to the MCP Bitbucket project! This d
 ## Development Setup
 
 ### Prerequisites
-- Node.js 18.x or higher
+- Node.js version declared in `package.json` `engines` (currently `>=18`)
 - npm or yarn
 - Docker (optional, for containerized development)
 
@@ -49,7 +49,7 @@ npm run dev
 ### Environment Setup
 ```bash
 # Copy environment template
-cp config.template.env .env
+cp configuration.template.env .env
 
 # Edit .env with your Bitbucket credentials
 BITBUCKET_URL=https://your-bitbucket-server.com
@@ -92,7 +92,7 @@ async function handleRequest(input: any): Promise<Result> {
         const validatedInput = schema.parse(input);
         return await service.process(validatedInput);
     } catch (error) {
-        logger.error('Request processing failed', { error, input });
+        loggerConfiguration.error('Request processing failed', { error, input });
         throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
 }
@@ -228,7 +228,7 @@ Please refer to our [Security Policy](SECURITY.md) for reporting security vulner
 
 ### Debugging
 ```bash
-# Enable debug logging
+# Enable debug loggerConfiguration
 DEBUG=mcp:* npm start
 
 # Use inspector for debugging

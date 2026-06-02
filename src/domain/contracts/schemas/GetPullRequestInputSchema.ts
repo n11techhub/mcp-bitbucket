@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 export const GetPullRequestInputSchema = z.object({
   project: z.string().optional().describe('Bitbucket project key'),

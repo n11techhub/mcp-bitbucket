@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 export const MergeOptionSchema = z.object({
   message: z.string().optional().describe('Merge commit message'),

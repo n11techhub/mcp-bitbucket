@@ -1,0 +1,230 @@
+import axios from "axios";
+import { ListRepositoriesInput } from '../../domain/contracts/input/index.js';
+import { ListBranchesInput } from '../../domain/contracts/input/index.js';
+import { AddBranchInput } from '../../domain/contracts/input/index.js';
+import { GetFileInput } from '../../domain/contracts/input/index.js';
+import { GetRepoInput } from '../../domain/contracts/input/index.js';
+import { BrowseDirectoryInput } from '../../domain/contracts/input/index.js';
+import { IRepositoryClient } from '../../domain/gateway/IRepositoryClient.js';
+import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
+import winston from 'winston';
+import { injectable, inject } from 'inversify';
+import {Configuration} from "../configuration/Configuration.js";
+import {Types} from "../../application/Types.js";
+import {BaseClient} from "./BaseClient.js";
+
+@injectable()
+export class RepositoryClient extends BaseClient implements IRepositoryClient {
+    private readonly defaultProject: string | undefined;
+
+    constructor(
+        @inject(Types.Configuration) config: Configuration,
+        @inject(Types.Logger) logger: winston.Logger
+    ) {
+        super(config, logger);
+        this.defaultProject = config.defaultProject;
+    }
+
+    public async listBitbucketRepositories(input: ListRepositoriesInput = {}): Promise<any> {
+        const { workspaceSlug, query, role } = input;
+        const projectKey = workspaceSlug ?? this.getDefaultProjectKey();
+
+        if (!projectKey) {
+            throw new McpError(
+                ErrorCode.InvalidParams,
+                'Either workspaceSlug or a default project must be provided.'
+            );
+        }
+
+        const params: any = {};
+        if (query) {
+            params.name = query;
+        }
+        if (role) {
+            params.permission = role;
+        }
+
+        try {
+            this.logger.info(`Listing repositories with projectKey: ${projectKey}, params: ${JSON.stringify(params)}`);
+            const response = await this.api.get(`/projects/${encodeURIComponent(projectKey)}/repos`, { params });
+            return {
+                content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+            };
+        } catch (error: any) {
+            this.logger.error(`Error listing repositories (projectKey: ${projectKey}):`, error.response?.data ?? error.message);
+            if (axios.isAxiosError(error) && error.response) {
+                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
+                throw new McpError(
+                    ErrorCode.InternalError,
+                    `Bitbucket API error: ${errorMessage}`
+                );
+            }
+            throw new McpError(ErrorCode.InternalError, `Failed to list repositories: ${error.message}`);
+        }
+    }
+
+    public async listBitbucketRepositoryBranches(input: ListBranchesInput): Promise<any> {
+        const { workspaceSlug, repoSlug, query, sort } = input;
+        const projectKey = workspaceSlug;
+
+        const params: any = {};
+        if (query) {
+            params.filterText = query;
+        }
+        if (sort) {
+            params.orderBy = sort;
+        }
+
+        try {
+            this.logger.info(`Listing branches with projectKey: ${projectKey}, repoSlug: ${repoSlug}, params: ${JSON.stringify(params)}`);
+            const response = await this.api.get(
+                `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/branches`,
+                { params }
+            );
+            return {
+                content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+            };
+        } catch (error: any) {
+            this.logger.error(`Error listing branches (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data ?? error.message);
+            if (axios.isAxiosError(error) && error.response) {
+                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
+                throw new McpError(
+                    ErrorCode.InternalError,
+                    `Bitbucket API error: ${errorMessage}`
+                );
+            }
+            throw new McpError(ErrorCode.InternalError, `Failed to list branches: ${error.message}`);
+        }
+    }
+
+    public async createBitbucketBranch(input: AddBranchInput): Promise<any> {
+        const { workspaceSlug, repoSlug, newBranchName, sourceBranchOrCommit } = input;
+        const projectKey = workspaceSlug;
+
+        try {
+            this.logger.info(`Creating branch with projectKey: ${projectKey}, repoSlug: ${repoSlug}, newBranchName: ${newBranchName}, source: ${sourceBranchOrCommit}`);
+            const response = await this.api.post(
+                `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/branches`,
+                {
+                    name: newBranchName,
+                    startPoint: sourceBranchOrCommit ?? 'main'
+                }
+            );
+            return {
+                content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+            };
+        } catch (error: any) {
+            this.logger.error(`Error creating branch (projectKey: ${projectKey}, repoSlug: ${repoSlug}, newBranchName: ${newBranchName}, source: ${sourceBranchOrCommit}):`, error.response?.data ?? error.message);
+            if (axios.isAxiosError(error) && error.response) {
+                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
+                throw new McpError(
+                    ErrorCode.InternalError,
+                    `Bitbucket API error: ${errorMessage}`
+                );
+            }
+            throw new McpError(ErrorCode.InternalError, `Failed to create branch: ${error.message}`);
+        }
+    }
+
+    public async getBitbucketFileContent(input: GetFileInput): Promise<any> {
+        const { workspaceSlug, repoSlug, filePath, revision } = input;
+        const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey
+        const sanitizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+        let apiUrl = `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/raw/${encodeURIComponent(sanitizedPath)}`;
+
+        const params: any = {};
+        if (revision) {
+            params.at = revision;
+        }
+
+        try {
+            this.logger.info(`Getting file content with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
+            const response = await this.api.get(apiUrl, { params, responseType: 'text' });
+            return {
+                content: [{ type: 'text', text: response.data }] // response.data should be the raw file content as string
+            };
+        } catch (error: any) {
+            this.logger.error(`Error getting file content (projectKey: ${projectKey}, repoSlug: ${repoSlug}, filePath: ${filePath}, revision: ${revision}):`, error.response?.data ?? error.message);
+            if (axios.isAxiosError(error) && error.response) {
+                let errorMessage = error.message;
+                if (typeof error.response.data === 'string') {
+                    errorMessage = error.response.data;
+                } else if (error.response.data?.errors?.[0]?.message) {
+                    errorMessage = error.response.data.errors[0].message;
+                } else if (error.response.data?.message) {
+                    errorMessage = error.response.data.message;
+                }
+                throw new McpError(
+                    ErrorCode.InternalError,
+                    `Bitbucket API error: ${errorMessage}`
+                );
+            }
+            throw new McpError(ErrorCode.InternalError, `Failed to get file content: ${error.message}`);
+        }
+    }
+
+    public async getBitbucketRepositoryDetails(input: GetRepoInput): Promise<any> {
+        const { workspaceSlug, repoSlug } = input;
+        const projectKey = workspaceSlug;
+        const apiUrl = `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}`;
+
+        try {
+            this.logger.info(`Getting repository details with apiUrl: ${apiUrl}`);
+            const response = await this.api.get(apiUrl);
+            return {
+                content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+            };
+        } catch (error: any) {
+            this.logger.error(`Error getting repository (projectKey: ${projectKey}, repoSlug: ${repoSlug}):`, error.response?.data ?? error.message);
+            if (axios.isAxiosError(error) && error.response) {
+                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
+                throw new McpError(
+                    ErrorCode.InternalError,
+                    `Bitbucket API error: ${errorMessage}`
+                );
+            }
+            throw new McpError(ErrorCode.InternalError, `Failed to get repository: ${error.message}`);
+        }
+    }
+
+    public async browseBitbucketDirectory(input: BrowseDirectoryInput): Promise<any> {
+        const { workspaceSlug, repoSlug, path, revision } = input;
+        const projectKey = workspaceSlug;
+
+        // Normalize path: empty, ".", or "/" should result in no path parameter (root)
+        const isRoot = !path || path === '.' || path === '/' || path.trim() === '';
+        const normalizedPath = isRoot ? undefined : (path.startsWith('/') ? path.substring(1) : path);
+
+        let apiUrl = `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/browse`;
+        if (normalizedPath) {
+            apiUrl += `/${encodeURIComponent(normalizedPath)}`;
+        }
+
+        const params: any = {};
+        if (revision) {
+            params.at = revision;
+        }
+
+        try {
+            this.logger.info(`Browsing directory with apiUrl: ${apiUrl}, params: ${JSON.stringify(params)}`);
+            const response = await this.api.get(apiUrl, { params });
+            return {
+                content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+            };
+        } catch (error: any) {
+            this.logger.error(`Error browsing directory (projectKey: ${projectKey}, repoSlug: ${repoSlug}, path: ${path}):`, error.response?.data ?? error.message);
+            if (axios.isAxiosError(error) && error.response) {
+                const errorMessage = error.response.data.errors?.[0]?.message ?? error.response.data.message ?? error.message;
+                throw new McpError(
+                    ErrorCode.InternalError,
+                    `Bitbucket API error: ${errorMessage}`
+                );
+            }
+            throw new McpError(ErrorCode.InternalError, `Failed to browse directory: ${error.message}`);
+        }
+    }
+
+    private getDefaultProjectKey(): string | undefined {
+        return this.defaultProject ?? undefined;
+    }
+}

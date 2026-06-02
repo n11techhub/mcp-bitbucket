@@ -17,7 +17,7 @@ WORKDIR /usr/src/app
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-COPY --from=builder --chown=appuser:appgroup /usr/src/app/build ./build
+COPY --from=builder --chown=appuser:appgroup /usr/src/app/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /usr/src/app/node_modules ./node_modules
 COPY --from=builder --chown=appuser:appgroup /usr/src/app/package.json .
 

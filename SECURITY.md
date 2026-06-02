@@ -56,7 +56,7 @@ If you discover a security vulnerability in mcp-bitbucket, please report it resp
 # ✅ GOOD: Use environment variables
 export BITBUCKET_TOKEN="your_personal_access_token"
 
-# ❌ BAD: Never hardcode in scripts or config files
+# ❌ BAD: Never hardcode in scripts or configuration files
 BITBUCKET_TOKEN="BBDC-..."  # This will be exposed!
 ```
 
@@ -134,10 +134,10 @@ MCP_API_KEY="password123"  # Too weak!
 #### Safe Logging Practices
 ```javascript
 // ✅ GOOD: Sanitize sensitive data in logs
-logger.info('Authenticating with Bitbucket', { url: bitbucketUrl });
+loggerConfiguration.info('Authenticating with Bitbucket', { url: bitbucketUrl });
 
 // ❌ BAD: Logging sensitive information
-logger.info('Auth details', { token: bitbucketToken }); // Token exposed!
+loggerConfiguration.info('Auth details', { token: bitbucketToken }); // Token exposed!
 ```
 
 #### Log File Security
@@ -153,8 +153,8 @@ logger.info('Auth details', { token: bitbucketToken }); // Token exposed!
 # ✅ GOOD: Use non-root user
 USER node
 
-# ✅ GOOD: Use specific image versions
-FROM node:18.20.0-alpine
+# ✅ GOOD: Use specific image versions aligned with project runtime baseline
+FROM node:18-alpine
 
 # ✅ GOOD: Minimal attack surface
 RUN apk add --no-cache dumb-init

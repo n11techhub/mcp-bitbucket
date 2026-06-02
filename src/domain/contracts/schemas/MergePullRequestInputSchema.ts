@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { GetPullRequestInputSchema } from './GetPullRequestInputSchema.js';
 import { MergeOptionSchema } from './MergeOptionSchema.js';
 

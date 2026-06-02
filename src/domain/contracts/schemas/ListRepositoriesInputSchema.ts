@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 // Regex pattern for valid Bitbucket project keys: alphanumeric, underscore, hyphen
 const PROJECT_KEY_PATTERN = /^[A-Z0-9_-]+$/i;

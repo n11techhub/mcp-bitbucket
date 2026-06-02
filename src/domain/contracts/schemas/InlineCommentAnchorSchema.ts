@@ -1,4 +1,4 @@
-import {z} from "zod";
+import {z} from "zod/v3";
 
 export const InlineCommentAnchorSchema = z.object({
     path: z.string().describe('Path to the file being commented on.'),

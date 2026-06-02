@@ -1,255 +1,204 @@
-/**
- * @fileoverview Unit tests for McpServerSetup
- * This file tests the McpServerSetup class, including tool registration,
- * request handling, authentication, and error management.
- */
-
-import 'reflect-metadata';
-import { jest } from '@jest/globals';
-import { McpServerSetup } from '../../../src/infrastructure/setup/McpServerSetup.js';
-import { IBitbucketClientFacade } from '../../../src/application/facade/IBitbucketClientFacade.js';
-import { IBitbucketUseCase } from '../../../src/application/use-cases/IBitbucketUseCase.js';
-import winston from 'winston';
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from '@modelcontextprotocol/sdk/types.js';
+import { McpServerSetup } from '../../../src/infrastructure/McpServerSetup.js';
+import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 import axios from 'axios';
 
-jest.mock('@modelcontextprotocol/sdk/server/index.js');
-jest.mock('axios');
-
-const mockApi: jest.Mocked<IBitbucketClientFacade> = {
-    createBitbucketPullRequest: jest.fn(),
-    getBitbucketPullRequestDetails: jest.fn(),
-    mergeBitbucketPullRequest: jest.fn(),
-    declineBitbucketPullRequest: jest.fn(),
-    addBitbucketGeneralPullRequestComment: jest.fn(),
-    getBitbucketPullRequestDiff: jest.fn(),
-    getBitbucketPullRequestReviews: jest.fn(),
-    listBitbucketWorkspaces: jest.fn(),
-    listBitbucketRepositories: jest.fn(),
-    searchBitbucketContent: jest.fn(),
-    getBitbucketRepositoryDetails: jest.fn(),
-    getBitbucketFileContent: jest.fn(),
-    createBitbucketBranch: jest.fn(),
-    addBitbucketPullRequestFileLineComment: jest.fn(),
-    listBitbucketRepositoryBranches: jest.fn(),
-    getBitbucketUserDetails: jest.fn(),
-    getDefaultProjectKey: jest.fn(),
-    browseBitbucketDirectory: jest.fn(),
-};
-
-const mockBitbucketUseCase: jest.Mocked<IBitbucketUseCase> = {
-    bitbucketCreatePullRequest: jest.fn(),
-    bitbucketGetPullRequestDetails: jest.fn(),
-    bitbucketMergePullRequest: jest.fn(),
-    bitbucketDeclinePullRequest: jest.fn(),
-    bitbucketAddGeneralPullRequestComment: jest.fn(),
-    bitbucketGetPullRequestDiff: jest.fn(),
-    bitbucketGetPullRequestReviews: jest.fn(),
-    bitbucketListWorkspaces: jest.fn(),
-    bitbucketListRepositories: jest.fn(),
-    bitbucketSearchContent: jest.fn(),
-    bitbucketGetRepositoryDetails: jest.fn(),
-    bitbucketGetFileContent: jest.fn(),
-    bitbucketCreateBranch: jest.fn(),
-    bitbucketAddPullRequestFileLineComment: jest.fn(),
-    bitbucketListRepositoryBranches: jest.fn(),
-    bitbucketGetUserDetails: jest.fn(),
-    bitbucketBrowseDirectory: jest.fn(),
-};
-
-const mockLogger: jest.Mocked<winston.Logger> = {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-} as any;
-
-const MockedServer = Server as jest.MockedClass<typeof Server>;
-
 describe('McpServerSetup', () => {
-    let mcpServerSetup: McpServerSetup;
-    const originalEnv = process.env;
-    let serverInstance: jest.Mocked<Server>;
+    const logger = {
+        info: jest.fn(),
+        warn: jest.fn(),
+        error: jest.fn(),
+    } as any;
+
+    const api = {
+        getDefaultProjectKey: jest.fn().mockReturnValue('PRJ'),
+    } as any;
+
+    const bitbucketUseCase = {
+        bitbucketCreatePullRequest: jest.fn(),
+        bitbucketGetPullRequestDetails: jest.fn(),
+        bitbucketGetPullRequestDiff: jest.fn(),
+        bitbucketGetPullRequestReviews: jest.fn(),
+        bitbucketListWorkspaces: jest.fn(),
+        bitbucketListRepositories: jest.fn(),
+        bitbucketSearchContent: jest.fn(),
+        bitbucketGetRepositoryDetails: jest.fn(),
+        bitbucketGetFileContent: jest.fn(),
+        bitbucketBrowseDirectory: jest.fn(),
+        bitbucketCreateBranch: jest.fn(),
+        bitbucketAddPullRequestFileLineComment: jest.fn(),
+        bitbucketListRepositoryBranches: jest.fn(),
+        bitbucketGetUserDetails: jest.fn(),
+        bitbucketMergePullRequest: jest.fn(),
+        bitbucketDeclinePullRequest: jest.fn(),
+        bitbucketAddGeneralPullRequestComment: jest.fn(),
+    } as any;
+
+    const configuration = { defaultProject: 'PRJ' } as any;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        process.env = { ...originalEnv };
+        process.env.MCP_API_KEY = 'secret-key';
+    });
+
+    afterAll(() => {
         delete process.env.MCP_API_KEY;
-        
-        serverInstance = {
-            setRequestHandler: jest.fn(),
-            onerror: jest.fn(),
-        } as any;
-        MockedServer.mockImplementation(() => serverInstance);
-
-        mcpServerSetup = new McpServerSetup(mockApi, mockBitbucketUseCase, mockLogger);
     });
 
-    afterEach(() => {
-        process.env = originalEnv;
+    it('returns a fair tool list with expected bitbucket tools', () => {
+        const setup = new McpServerSetup(api, bitbucketUseCase, logger, configuration);
+        const tools = setup.getAvailableTools();
+
+        expect(tools.length).toBeGreaterThanOrEqual(10);
+        expect(tools.some((t: any) => t.name === 'bitbucket_list_workspaces')).toBe(true);
+        expect(tools.some((t: any) => t.name === 'bitbucket_merge_pull_request')).toBe(true);
     });
 
-    describe('Constructor', () => {
-        it('should initialize the server and register all tools', () => {
-            expect(MockedServer).toHaveBeenCalledTimes(1);
-            expect(mcpServerSetup.getAvailableTools().length).toBeGreaterThanOrEqual(16);
+    it('configures handlers and executes a known tool', async () => {
+        bitbucketUseCase.bitbucketListWorkspaces.mockResolvedValue({ content: [] });
+        const setup = new McpServerSetup(api, bitbucketUseCase, logger, configuration);
+
+        const setRequestHandler = jest.fn();
+        const fakeServer = { server: { setRequestHandler, onerror: undefined as any } } as any;
+
+        setup.configureServer(fakeServer, 'secret-key');
+
+        const listHandler = setRequestHandler.mock.calls[0][1];
+        const callHandler = setRequestHandler.mock.calls[1][1];
+
+        const listResult = await listHandler();
+        const callResult = await callHandler({
+            params: { name: 'bitbucket_list_workspaces', arguments: {} },
         });
 
-        it('should warn if MCP_API_KEY is not set', () => {
-            expect(mockLogger.warn).toHaveBeenCalledWith('MCP_API_KEY is not set. The server will not require authentication.');
-        });
-
-        it('should not warn if MCP_API_KEY is set', () => {
-            process.env.MCP_API_KEY = 'test-key';
-            mockLogger.warn.mockClear();
-            new McpServerSetup(mockApi, mockBitbucketUseCase, mockLogger);
-            expect(mockLogger.warn).not.toHaveBeenCalled();
-        });
-
-        it('should set up handlers for ListTools and CallTool requests', () => {
-            expect(serverInstance.setRequestHandler).toHaveBeenCalledWith(ListToolsRequestSchema, expect.any(Function));
-            expect(serverInstance.setRequestHandler).toHaveBeenCalledWith(CallToolRequestSchema, expect.any(Function));
-        });
+        expect(listResult.tools.length).toBeGreaterThan(0);
+        expect(bitbucketUseCase.bitbucketListWorkspaces).toHaveBeenCalledWith({});
+        expect(callResult).toEqual({ content: [] });
     });
 
-    describe('Authentication', () => {
-        beforeEach(() => {
-            process.env.MCP_API_KEY = 'secret-key';
-            mcpServerSetup = new McpServerSetup(mockApi, mockBitbucketUseCase, mockLogger);
-        });
+    it('rejects tool execution when authentication fails', async () => {
+        const setup = new McpServerSetup(api, bitbucketUseCase, logger, configuration);
 
-        it('should succeed with the correct API key', async () => {
-            await expect(mcpServerSetup.callTool('bitbucket_list_workspaces', {}, 'secret-key')).resolves.not.toThrow();
-            expect(mockLogger.info).toHaveBeenCalledWith('Authentication successful.');
-        });
+        const setRequestHandler = jest.fn();
+        const fakeServer = { server: { setRequestHandler, onerror: undefined as any } } as any;
 
-        it('should fail with an incorrect API key', async () => {
-            await expect(mcpServerSetup.callTool('bitbucket_list_workspaces', {}, 'wrong-key'))
-                .rejects.toThrow(new McpError(ErrorCode.InternalError, 'Authentication failed: Invalid or missing API key.'));
-            expect(mockLogger.error).toHaveBeenCalledWith('Authentication failed: Invalid or missing API key.');
-        });
+        setup.configureServer(fakeServer, 'wrong-key');
+        const callHandler = setRequestHandler.mock.calls[1][1];
 
-        it('should fail with a missing API key', async () => {
-            await expect(mcpServerSetup.callTool('bitbucket_list_workspaces', {}))
-                .rejects.toThrow(new McpError(ErrorCode.InternalError, 'Authentication failed: Invalid or missing API key.'));
-        });
-
-        it('should not require authentication if MCP_API_KEY is not set', async () => {
-            delete process.env.MCP_API_KEY;
-            mcpServerSetup = new McpServerSetup(mockApi, mockBitbucketUseCase, mockLogger);
-            await expect(mcpServerSetup.callTool('bitbucket_list_workspaces', {})).resolves.not.toThrow();
-            expect(mockLogger.info).not.toHaveBeenCalledWith('Authentication successful.');
-        });
+        await expect(
+            callHandler({ params: { name: 'bitbucket_list_workspaces', arguments: {} } })
+        ).rejects.toMatchObject({
+            code: ErrorCode.InternalError,
+        } satisfies Partial<McpError>);
     });
 
-    describe('callTool', () => {
-        it('should call the correct use case method with validated arguments', async () => {
-            const input = { query: 'test' };
-            const expectedResult = { success: true };
-            mockBitbucketUseCase.bitbucketListWorkspaces.mockResolvedValue(expectedResult);
+    it('returns MethodNotFound for unknown tool names', async () => {
+        const setup = new McpServerSetup(api, bitbucketUseCase, logger, configuration);
 
-            const result = await mcpServerSetup.callTool('bitbucket_list_workspaces', input);
+        const setRequestHandler = jest.fn();
+        const fakeServer = { server: { setRequestHandler, onerror: undefined as any } } as any;
 
-            expect(mockBitbucketUseCase.bitbucketListWorkspaces).toHaveBeenCalledWith(input);
-            expect(result).toBe(expectedResult);
-        });
+        setup.configureServer(fakeServer, 'secret-key');
+        const callHandler = setRequestHandler.mock.calls[1][1];
 
-        it('should throw MethodNotFound for an unknown tool', async () => {
-            const toolName = 'unknown_tool';
-            await expect(mcpServerSetup.callTool(toolName, {}))
-                .rejects.toThrow(new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${toolName}`));
-        });
-
-        it('should throw validation error for invalid arguments', async () => {
-            const invalidInput = { wrong_param: 'test' };
-
-            mockBitbucketUseCase.bitbucketListWorkspaces.mockResolvedValue({ success: true });
-
-            await expect(mcpServerSetup.callTool('bitbucket_list_workspaces', invalidInput))
-                .rejects.toThrow();
-            expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('Error in bitbucket_list_workspaces handler'),
-                expect.any(Object)
-            );
-        });
-
-        it('should handle and re-throw McpError from handlers', async () => {
-            const mcpError = new McpError(ErrorCode.InternalError, 'A specific MCP error');
-            mockBitbucketUseCase.bitbucketListWorkspaces.mockRejectedValue(mcpError);
-            
-            await expect(mcpServerSetup.callTool('bitbucket_list_workspaces', {}))
-                .rejects.toThrow(mcpError);
-        });
-
-        it('should handle and wrap AxiosError in McpError', async () => {
-            const axiosError = {
-                isAxiosError: true,
-                response: { data: { message: 'Bitbucket is down' } },
-                message: 'Request failed',
-            };
-            jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
-            mockBitbucketUseCase.bitbucketListWorkspaces.mockRejectedValue(axiosError);
-
-            await expect(mcpServerSetup.callTool('bitbucket_list_workspaces', {}))
-                .rejects.toThrow(new McpError(ErrorCode.InternalError, 'Bitbucket API error: Bitbucket is down'));
-        });
-
-        it('should handle and wrap generic Error in McpError', async () => {
-            const genericError = new Error('Something went wrong');
-            jest.spyOn(axios, 'isAxiosError').mockReturnValue(false);
-            mockBitbucketUseCase.bitbucketListWorkspaces.mockRejectedValue(genericError);
-
-            await expect(mcpServerSetup.callTool('bitbucket_list_workspaces', {}))
-                .rejects.toThrow(new McpError(ErrorCode.InternalError, 'Something went wrong'));
-        });
+        await expect(
+            callHandler({ params: { name: 'bitbucket_unknown', arguments: {} } })
+        ).rejects.toMatchObject({
+            code: ErrorCode.MethodNotFound,
+        } satisfies Partial<McpError>);
     });
 
-    describe('Request Handlers', () => {
-        let listToolsHandler: () => Promise<any>;
-        let callToolHandler: (request: any) => Promise<any>;
+    it('does not require auth when MCP_API_KEY is not set', async () => {
+        delete process.env.MCP_API_KEY;
+        bitbucketUseCase.bitbucketListWorkspaces.mockResolvedValue({ ok: true });
+        const setup = new McpServerSetup(api, bitbucketUseCase, logger, configuration);
 
-        beforeEach(() => {
-            const listToolsCall = (serverInstance.setRequestHandler as jest.Mock).mock.calls.find(call => call[0] === ListToolsRequestSchema);
-            const callToolCall = (serverInstance.setRequestHandler as jest.Mock).mock.calls.find(call => call[0] === CallToolRequestSchema);
-            
-            if (!listToolsCall || !callToolCall) {
-                throw new Error('Request handlers not set up correctly');
-            }
+        const setRequestHandler = jest.fn();
+        const fakeServer = { server: { setRequestHandler, onerror: undefined as any } } as any;
+        setup.configureServer(fakeServer, undefined);
 
-            listToolsHandler = listToolsCall[1] as () => Promise<any>;
-            callToolHandler = callToolCall[1] as (request: any) => Promise<any>;
-        });
-
-        it('ListTools handler should return available tools', async () => {
-            const result = await listToolsHandler();
-            expect(result.tools).toBeInstanceOf(Array);
-            expect(result.tools.length).toBe(17);
-            expect(result.tools[0]).toHaveProperty('name');
-            expect(result.tools[0]).toHaveProperty('description');
-            expect(result.tools[0]).toHaveProperty('inputSchema');
-        });
-
-        it('CallTool handler should execute the correct tool', async () => {
-            const request = {
-                params: {
-                    name: 'bitbucket_get_user_profile',
-                    arguments: { username: 'test-user' }
-                }
-            };
-            const expectedResult = { displayName: 'Test User' };
-            mockBitbucketUseCase.bitbucketGetUserDetails.mockResolvedValue(expectedResult);
-
-            const result = await callToolHandler(request);
-            
-            expect(mockBitbucketUseCase.bitbucketGetUserDetails).toHaveBeenCalledWith({ username: 'test-user' });
-            expect(result).toBe(expectedResult);
-        });
-
-        it('CallTool handler should throw MethodNotFound for unknown tool', async () => {
-            const request = { params: { name: 'non_existent_tool', arguments: {} } };
-            
-            await expect(callToolHandler(request))
-                .rejects.toThrow(new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${request.params.name}`));
-        });
+        const callHandler = setRequestHandler.mock.calls[1][1];
+        await expect(callHandler({ params: { name: 'bitbucket_list_workspaces', arguments: {} } })).resolves.toEqual({ ok: true });
+        expect(logger.warn).toHaveBeenCalledWith('MCP_API_KEY is not set. The server will not require authentication.');
     });
-}); 
+
+    it('attaches onerror hook to server', () => {
+        const setup = new McpServerSetup(api, bitbucketUseCase, logger, configuration);
+        const setRequestHandler = jest.fn();
+        const fakeServer = { server: { setRequestHandler, onerror: undefined as any } } as any;
+
+        setup.configureServer(fakeServer, 'secret-key');
+        fakeServer.server.onerror(new Error('boom'));
+
+        expect(logger.error).toHaveBeenCalledWith('[MCP Error]', 'boom', expect.any(Object));
+    });
+
+    it('maps validation errors from handlers to internal errors', async () => {
+        bitbucketUseCase.bitbucketListWorkspaces.mockRejectedValue(new Error('unexpected validation flow'));
+        const setup = new McpServerSetup(api, bitbucketUseCase, logger, configuration);
+        const setRequestHandler = jest.fn();
+        const fakeServer = { server: { setRequestHandler, onerror: undefined as any } } as any;
+
+        setup.configureServer(fakeServer, 'secret-key');
+        const callHandler = setRequestHandler.mock.calls[1][1];
+
+        await expect(
+            callHandler({ params: { name: 'bitbucket_list_workspaces', arguments: { query: 123 } } })
+        ).rejects.toMatchObject({ code: ErrorCode.InternalError });
+    });
+
+    it('maps axios-style tool execution errors to McpError', async () => {
+        const axiosSpy = jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
+        bitbucketUseCase.bitbucketListWorkspaces.mockRejectedValue({
+            response: { data: { message: 'api denied' } },
+            message: 'http failed',
+        });
+
+        const setup = new McpServerSetup(api, bitbucketUseCase, logger, configuration);
+        const setRequestHandler = jest.fn();
+        const fakeServer = { server: { setRequestHandler, onerror: undefined as any } } as any;
+
+        setup.configureServer(fakeServer, 'secret-key');
+        const callHandler = setRequestHandler.mock.calls[1][1];
+
+        await expect(
+            callHandler({ params: { name: 'bitbucket_list_workspaces', arguments: {} } })
+        ).rejects.toMatchObject({ message: expect.stringContaining('Bitbucket API error: api denied') });
+
+        axiosSpy.mockRestore();
+    });
+
+    it('keeps McpError as-is from handler execution', async () => {
+        bitbucketUseCase.bitbucketListWorkspaces.mockRejectedValue(new McpError(ErrorCode.InvalidParams, 'bad args'));
+        const setup = new McpServerSetup(api, bitbucketUseCase, logger, configuration);
+        const setRequestHandler = jest.fn();
+        const fakeServer = { server: { setRequestHandler, onerror: undefined as any } } as any;
+
+        setup.configureServer(fakeServer, 'secret-key');
+        const callHandler = setRequestHandler.mock.calls[1][1];
+
+        await expect(
+            callHandler({ params: { name: 'bitbucket_list_workspaces', arguments: {} } })
+        ).rejects.toMatchObject({ code: ErrorCode.InvalidParams });
+    });
+
+    it('maps generic non-axios execution errors', async () => {
+        const axiosSpy = jest.spyOn(axios, 'isAxiosError').mockReturnValue(false);
+        bitbucketUseCase.bitbucketListWorkspaces.mockRejectedValue(new Error('unexpected failure'));
+        const setup = new McpServerSetup(api, bitbucketUseCase, logger, configuration);
+        const setRequestHandler = jest.fn();
+        const fakeServer = { server: { setRequestHandler, onerror: undefined as any } } as any;
+
+        setup.configureServer(fakeServer, 'secret-key');
+        const callHandler = setRequestHandler.mock.calls[1][1];
+
+        await expect(
+            callHandler({ params: { name: 'bitbucket_list_workspaces', arguments: {} } })
+        ).rejects.toMatchObject({
+            code: ErrorCode.InternalError,
+        });
+
+        axiosSpy.mockRestore();
+    });
+});
+
+

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 const PROJECT_KEY_PATTERN = /^[A-Z0-9_-]+$/i;
 
@@ -11,7 +11,7 @@ export const BrowseDirectoryInputSchema = z.object({
     repoSlug: z.string()
         .min(1, 'Repository slug cannot be empty')
         .max(255, 'Repository slug too long')
-        .describe('Slug of the repository.'),
+        .describe('Slug of the gateway.'),
     path: z.string()
         .max(1000, 'Path too long')
         .refine(

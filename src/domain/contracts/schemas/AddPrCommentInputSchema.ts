@@ -1,9 +1,9 @@
-import {z} from "zod";
+import {z} from "zod/v3";
 import { InlineCommentAnchorSchema } from './InlineCommentAnchorSchema.js';
 
 export const AddPrCommentInputSchema = z.object({
     workspaceSlug: z.string().describe('Slug of the workspace/project.'),
-    repoSlug: z.string().describe('Slug of the repository.'),
+    repoSlug: z.string().describe('Slug of the gateway.'),
     prId: z.number().int().positive().describe('Numeric ID of the pull request.'),
     content: z.string().describe('The text content of the comment.'),
     parentId: z.number().int().positive().optional().describe('Optional ID of the parent comment if this is a reply.'),
