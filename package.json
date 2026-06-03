@@ -1,6 +1,6 @@
 {
   "name": "mcp-bitbucket",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A Node.js/TypeScript MCP server for Atlassian Bitbucket that enables AI systems to interact with repositories, pull requests, and code.",
   "type": "module",
   "main": "dist/index.js",

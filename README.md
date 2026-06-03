@@ -1,13 +1,32 @@
 # mcp-bitbucket
 
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.1.0-blue)
 [![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-n11tech%2Fmcp--bitbucket-blue?logo=github&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/pkgs/container/mcp-bitbucket)
 [![Docker Build](https://img.shields.io/github/actions/workflow/status/n11tech/mcp-bitbucket/docker-publish.yml?branch=main&label=Docker%20Build&logo=docker&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/actions/workflows/docker-publish.yml)
 
 **A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Bitbucket Server/Data Center.**
 
 This server enables AI systems (e.g., LLMs, AI coding assistants) to securely interact with your self-hosted Bitbucket repositories, pull requests, projects, and code in real time through both standard stdio and HTTP streaming transports.
+
+## Version 2.1.0 Release Notes
+
+**Approval Tool & Security Hardening** (June 2026)
+
+This minor release adds pull request approval support and includes non-breaking security and maintainability improvements.
+
+### ✨ New Features
+- **Pull Request Approval Tool**: Added `bitbucket_approve_pull_request` tool backed by Bitbucket Server/Data Center approve endpoint semantics.
+
+### 🔒 Security & Reliability
+- **Input/Path Safety Improvements**: Strengthened schema and path-handling behavior in core request flows.
+- **HTTP Transport Hardening**: Improved authentication/session behavior for safer HTTP streaming operation.
+- **Logging Hygiene**: Reduced sensitive argument exposure by using safer request argument summaries.
+
+### ⚠️ Breaking Changes
+None - changes are backward compatible.
+
+---
 
 ## Version 2.0.0 Release Notes
 
@@ -538,6 +557,7 @@ This server provides a comprehensive suite of tools for interacting with Bitbuck
 ### Pull Request Management
 - `bitbucket_create_pull_request` - Create new pull requests
 - `bitbucket_get_pull_request_details` - Get PR details and metadata  
+- `bitbucket_approve_pull_request` - Approve pull requests
 - `bitbucket_get_pull_request_diff` - Retrieve PR diffs
 - `bitbucket_get_pull_request_reviews` - Get PR review status
 - `bitbucket_merge_pull_request` - Merge pull requests
