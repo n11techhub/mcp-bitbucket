@@ -28,8 +28,8 @@ export class UserClient extends BaseClient implements IUserClient {
 
         try {
             this.logger.info(`Fetching Bitbucket user details for userSlug: ${userSlug}`);
-            const response = await this.api.get(`/users/${userSlug}`);
-            
+            const response = await this.api.get(`/users/${encodeURIComponent(userSlug)}`);
+
             this.logger.info(`Successfully fetched user details for userSlug: ${userSlug}`);
             return {
                 content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]

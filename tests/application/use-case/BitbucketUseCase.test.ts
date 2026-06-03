@@ -6,6 +6,7 @@ describe('BitbucketUseCase', () => {
         getDefaultProjectKey: jest.fn(),
         createBitbucketPullRequest: jest.fn(),
         getBitbucketPullRequestDetails: jest.fn(),
+        approveBitbucketPullRequest: jest.fn(),
         mergeBitbucketPullRequest: jest.fn(),
         declineBitbucketPullRequest: jest.fn(),
         addBitbucketGeneralPullRequestComment: jest.fn(),
@@ -72,6 +73,21 @@ describe('BitbucketUseCase', () => {
             { message: 'done', strategy: 'squash' }
         );
         expect(result).toEqual({ merged: true });
+    });
+
+    it('resolves project and delegates pull request approval', async () => {
+        facade.getDefaultProjectKey.mockReturnValue('PRJ');
+        facade.approveBitbucketPullRequest.mockResolvedValue({ approved: true });
+
+        const result = await useCase.bitbucketApprovePullRequest({ repository: 'repo', prId: 9, version: 3 } as any);
+
+        expect(facade.approveBitbucketPullRequest).toHaveBeenCalledWith({
+            project: 'PRJ',
+            repository: 'repo',
+            prId: 9,
+            version: 3,
+        });
+        expect(result).toEqual({ approved: true });
     });
 
     it('throws explicit error when create pull request has no provided/default project', async () => {

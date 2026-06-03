@@ -73,11 +73,16 @@ describe('PullRequestClient', () => {
             reviewers: ['alice'],
         } as any);
         await client.getBitbucketPullRequestDetails({ project: 'N11', repository: 'repo', prId: 7 } as any);
+        await client.approveBitbucketPullRequest({ project: 'N11', repository: 'repo', prId: 7 } as any, 2);
         await client.declineBitbucketPullRequest({ project: 'N11', repository: 'repo', prId: 7 } as any, 'nope');
         await client.addBitbucketGeneralPullRequestComment({ project: 'N11', repository: 'repo', prId: 7 } as any, { text: 'hi' } as any);
         await client.getBitbucketPullRequestDiff({ project: 'N11', repository: 'repo', prId: 7 } as any, 4);
         await client.getBitbucketPullRequestReviews({ project: 'N11', repository: 'repo', prId: 7 } as any);
 
+        expect(api.post).toHaveBeenCalledWith(
+            '/projects/N11/repos/repo/pull-requests/7/approve',
+            { version: 2 }
+        );
         expect(api.post).toHaveBeenCalledWith(
             '/projects/N11/repos/repo/pull-requests',
             expect.objectContaining({ title: 'PR' })

@@ -5,6 +5,7 @@ import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 import {
     CreatePullRequestInput,
     GetPullRequestInput,
+    ApprovePullRequestInput,
     MergePullRequestInput,
     DeclinePullRequestInput,
     AddCommentInput,
@@ -53,6 +54,11 @@ export class BitbucketUseCase implements IBitbucketUseCase {
     async bitbucketGetPullRequestDetails(input: GetPullRequestInput): Promise<any> {
         const project = this.resolveProjectKey(input.project);
         return this.bitbucketClientFacade.getBitbucketPullRequestDetails({ ...input, project });
+    }
+
+    async bitbucketApprovePullRequest(input: ApprovePullRequestInput): Promise<any> {
+        const project = this.resolveProjectKey(input.project);
+        return this.bitbucketClientFacade.approveBitbucketPullRequest({ ...input, project });
     }
 
     async bitbucketMergePullRequest(input: MergePullRequestInput): Promise<any> {

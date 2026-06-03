@@ -16,6 +16,7 @@ describe('McpServerSetup', () => {
     const bitbucketUseCase = {
         bitbucketCreatePullRequest: jest.fn(),
         bitbucketGetPullRequestDetails: jest.fn(),
+        bitbucketApprovePullRequest: jest.fn(),
         bitbucketGetPullRequestDiff: jest.fn(),
         bitbucketGetPullRequestReviews: jest.fn(),
         bitbucketListWorkspaces: jest.fn(),
@@ -51,6 +52,7 @@ describe('McpServerSetup', () => {
         expect(tools.length).toBeGreaterThanOrEqual(10);
         expect(tools.some((t: any) => t.name === 'bitbucket_list_workspaces')).toBe(true);
         expect(tools.some((t: any) => t.name === 'bitbucket_merge_pull_request')).toBe(true);
+        expect(tools.some((t: any) => t.name === 'bitbucket_approve_pull_request')).toBe(true);
     });
 
     it('configures handlers and executes a known tool', async () => {

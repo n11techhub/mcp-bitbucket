@@ -22,8 +22,10 @@ export class PullRequestClient extends BaseClient implements IPullRequestClient 
     }
 
     public async createBitbucketPullRequest(input: PullRequestInput): Promise<any> {
+        const project = encodeURIComponent(this.requireProjectKey(input.project));
+        const repository = encodeURIComponent(input.repository);
         const response = await this.api.post(
-            `/projects/${input.project}/repos/${input.repository}/pull-requests`,
+            `/projects/${project}/repos/${repository}/pull-requests`,
             {
                 title: input.title,
                 description: input.description,
@@ -52,8 +54,24 @@ export class PullRequestClient extends BaseClient implements IPullRequestClient 
 
     public async getBitbucketPullRequestDetails(params: PullRequestParams): Promise<any> {
         const { project, repository, prId } = params;
+        const encodedProject = encodeURIComponent(this.requireProjectKey(project));
+        const encodedRepository = encodeURIComponent(repository);
         const response = await this.api.get(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}`
+            `/projects/${encodedProject}/repos/${encodedRepository}/pull-requests/${prId}`
+        );
+
+        return {
+            content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        };
+    }
+
+    public async approveBitbucketPullRequest(params: PullRequestParams, version?: number): Promise<any> {
+        const { project, repository, prId } = params;
+        const encodedProject = encodeURIComponent(this.requireProjectKey(project));
+        const encodedRepository = encodeURIComponent(repository);
+        const response = await this.api.post(
+            `/projects/${encodedProject}/repos/${encodedRepository}/pull-requests/${prId}/approve`,
+            version === undefined ? {} : { version }
         );
 
         return {
@@ -63,10 +81,12 @@ export class PullRequestClient extends BaseClient implements IPullRequestClient 
 
     public async mergeBitbucketPullRequest(params: PullRequestParams, options: MergeOption = {}): Promise<any> {
         const { project, repository, prId } = params;
+        const encodedProject = encodeURIComponent(this.requireProjectKey(project));
+        const encodedRepository = encodeURIComponent(repository);
         const { message, strategy = 'merge-commit' } = options;
 
         const response = await this.api.post(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}/merge`,
+            `/projects/${encodedProject}/repos/${encodedRepository}/pull-requests/${prId}/merge`,
             {
                 version: -1,
                 message,
@@ -81,8 +101,10 @@ export class PullRequestClient extends BaseClient implements IPullRequestClient 
 
     public async declineBitbucketPullRequest(params: PullRequestParams, message?: string): Promise<any> {
         const { project, repository, prId } = params;
+        const encodedProject = encodeURIComponent(this.requireProjectKey(project));
+        const encodedRepository = encodeURIComponent(repository);
         const response = await this.api.post(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}/decline`,
+            `/projects/${encodedProject}/repos/${encodedRepository}/pull-requests/${prId}/decline`,
             { version: -1, message }
         );
 
@@ -93,10 +115,12 @@ export class PullRequestClient extends BaseClient implements IPullRequestClient 
 
     public async addBitbucketGeneralPullRequestComment(params: PullRequestParams, options: CommentOption): Promise<any> {
         const { project, repository, prId } = params;
+        const encodedProject = encodeURIComponent(this.requireProjectKey(project));
+        const encodedRepository = encodeURIComponent(repository);
         const { text, parentId } = options;
 
         const response = await this.api.post(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}/comments`,
+            `/projects/${encodedProject}/repos/${encodedRepository}/pull-requests/${prId}/comments`,
             { text, parent: parentId ? { id: parentId } : undefined }
         );
 
@@ -107,9 +131,11 @@ export class PullRequestClient extends BaseClient implements IPullRequestClient 
 
     public async getBitbucketPullRequestDiff(params: PullRequestParams, contextLines: number = 10): Promise<any> {
         const { project, repository, prId } = params;
+        const encodedProject = encodeURIComponent(this.requireProjectKey(project));
+        const encodedRepository = encodeURIComponent(repository);
 
         const response = await this.api.get(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}/diff`,
+            `/projects/${encodedProject}/repos/${encodedRepository}/pull-requests/${prId}/diff`,
             { params: { withComments: false, contextLines } }
         );
 
@@ -120,9 +146,11 @@ export class PullRequestClient extends BaseClient implements IPullRequestClient 
 
     public async getBitbucketPullRequestReviews(params: PullRequestParams): Promise<any> {
         const { project, repository, prId } = params;
+        const encodedProject = encodeURIComponent(this.requireProjectKey(project));
+        const encodedRepository = encodeURIComponent(repository);
 
         const response = await this.api.get(
-            `/projects/${project}/repos/${repository}/pull-requests/${prId}/activities`,
+            `/projects/${encodedProject}/repos/${encodedRepository}/pull-requests/${prId}/activities`,
             { params: { activity: 'reviews' } }
         );
 
@@ -133,7 +161,7 @@ export class PullRequestClient extends BaseClient implements IPullRequestClient 
 
     public async addBitbucketPullRequestFileLineComment(input: AddPrCommentInput): Promise<any> {
         const { workspaceSlug, repoSlug, prId, content, inline, parentId } = input;
-        const projectKey = workspaceSlug;
+        const projectKey = this.requireProjectKey(workspaceSlug);
 
         const payload: any = {
             text: content,
@@ -153,9 +181,9 @@ export class PullRequestClient extends BaseClient implements IPullRequestClient 
         }
 
         try {
-            this.logger.info(`Adding PR comment with payload: ${JSON.stringify(payload)}`);
+            this.logger.info(`Adding PR comment for projectKey: ${projectKey}, repoSlug: ${repoSlug}, prId: ${prId}, hasInline: ${Boolean(inline)}, hasParent: ${Boolean(parentId)}`);
             const response = await this.api.post(
-                `/projects/${projectKey}/repos/${repoSlug}/pull-requests/${prId}/comments`,
+                `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/pull-requests/${prId}/comments`,
                 payload
             );
             return {
@@ -172,5 +200,12 @@ export class PullRequestClient extends BaseClient implements IPullRequestClient 
             }
             throw new McpError(ErrorCode.InternalError, `Failed to add PR comment: ${error.message}`);
         }
+    }
+
+    private requireProjectKey(projectKey?: string): string {
+        if (!projectKey) {
+            throw new McpError(ErrorCode.InvalidParams, 'Project key is required.');
+        }
+        return projectKey;
     }
 }

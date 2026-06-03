@@ -8,6 +8,7 @@ import { ListWorkspacesInput } from "../../../domain/contracts/input/index.js";
 import { SearchContentInput } from "../../../domain/contracts/input/index.js";
 import { ListBranchesInput } from "../../../domain/contracts/input/index.js";
 import { AddPrCommentInput } from "../../../domain/contracts/input/index.js";
+import { ApprovePullRequestInput } from "../../../domain/contracts/input/index.js";
 import { AddBranchInput } from "../../../domain/contracts/input/index.js";
 import { GetFileInput } from "../../../domain/contracts/input/index.js";
 import { GetRepoInput } from "../../../domain/contracts/input/index.js";
@@ -53,6 +54,11 @@ export class BitbucketClientFacade implements IBitbucketClientFacade {
 
     public async getBitbucketPullRequestDetails(params: PullRequestParams): Promise<any> {
         return this.pullRequestClient.getBitbucketPullRequestDetails(params);
+    }
+
+    public async approveBitbucketPullRequest(input: ApprovePullRequestInput): Promise<any> {
+        const { project, repository, prId, version } = input;
+        return this.pullRequestClient.approveBitbucketPullRequest({ project, repository, prId }, version);
     }
 
     public async mergeBitbucketPullRequest(params: PullRequestParams, options: MergeOption = {}): Promise<any> {

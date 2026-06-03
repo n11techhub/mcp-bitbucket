@@ -12,6 +12,7 @@ import {
     AddBranchInputSchema,
     AddCommentInputSchema,
     AddPrCommentInputSchema,
+    ApprovePullRequestInputSchema,
     BrowseDirectoryInputSchema,
     CreatePullRequestInputSchema,
     DeclinePullRequestInputSchema,
@@ -45,6 +46,7 @@ export class McpServerSetup {
     private readonly configuration: Configuration;
     private readonly api: IBitbucketClientFacade;
     private readonly bitbucketUseCase: IBitbucketUseCase;
+    private readonly isProduction: boolean;
 
     constructor(
         @inject(Types.IBitbucketClient) api: IBitbucketClientFacade,
@@ -56,9 +58,14 @@ export class McpServerSetup {
         this.bitbucketUseCase = bitbucketUseCase;
         this.logger = logger;
         this.configuration = configuration;
+        this.isProduction = process.env.NODE_ENV === 'production';
         this.apiKey = process.env.MCP_API_KEY;
 
-        if (!this.apiKey) {
+        if (!this.apiKey && this.isProduction) {
+            throw new Error('MCP_API_KEY must be set in production to secure MCP tool execution.');
+        }
+
+        if (!this.apiKey && !this.isProduction) {
             this.logger.warn('MCP_API_KEY is not set. The server will not require authentication.');
         }
 
@@ -74,6 +81,12 @@ export class McpServerSetup {
                 description: 'Gets details for a Bitbucket pull request',
                 inputSchema: zodToJsonSchema(GetPullRequestInputSchema),
                 handler: this.createValidatedHandler('bitbucket_get_pull_request_details', GetPullRequestInputSchema, this.bitbucketUseCase.bitbucketGetPullRequestDetails.bind(this.bitbucketUseCase))
+            },
+            {
+                name: 'bitbucket_approve_pull_request',
+                description: 'Approves a Bitbucket pull request',
+                inputSchema: zodToJsonSchema(ApprovePullRequestInputSchema),
+                handler: this.createValidatedHandler('bitbucket_approve_pull_request', ApprovePullRequestInputSchema, this.bitbucketUseCase.bitbucketApprovePullRequest.bind(this.bitbucketUseCase))
             },
             {
                 name: 'bitbucket_get_pull_request_diff',
@@ -187,7 +200,8 @@ export class McpServerSetup {
         }));
 
         server.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-            this.logger.info(`[CallToolRequestSchema] Received tool call. Name: '${request.params.name}'. Args: ${JSON.stringify(request.params.arguments ?? {})}. DefaultProject: '${this.configuration.defaultProject}'`);
+            const argsSummary = this.summarizeArgs(request.params.arguments);
+            this.logger.info(`[CallToolRequestSchema] Received tool call. Name: '${request.params.name}'. ArgsSummary: ${JSON.stringify(argsSummary)}. DefaultProject: '${this.configuration.defaultProject}'`);
 
             this.authenticate(apiKey);
 
@@ -242,10 +256,29 @@ export class McpServerSetup {
                 this.logger.error(`Error in ${toolName} handler`, {
                     message: error.message,
                     stack: error.stack,
-                    args
+                    argsSummary: this.summarizeArgs(args)
                 });
                 throw error;
             }
         };
+    }
+
+    private summarizeArgs(args: unknown): Record<string, unknown> {
+        if (!args || typeof args !== 'object' || Array.isArray(args)) {
+            return { type: typeof args };
+        }
+
+        const raw = args as Record<string, unknown>;
+        const summary: Record<string, unknown> = {
+            keys: Object.keys(raw)
+        };
+
+        for (const key of ['project', 'workspaceSlug', 'repoSlug', 'repository', 'prId', 'username']) {
+            if (key in raw) {
+                summary[key] = raw[key];
+            }
+        }
+
+        return summary;
     }
 }

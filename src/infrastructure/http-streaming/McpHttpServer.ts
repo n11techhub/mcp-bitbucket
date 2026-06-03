@@ -15,6 +15,8 @@ import type { IMcpServerFactory } from '../../application/factory/IMcpServerFact
 interface Session {
     transport: StreamableHTTPServerTransport;
     server: McpServer;
+    expiresAt: number;
+    ttlTimer?: NodeJS.Timeout;
 }
 
 @injectable()
@@ -27,6 +29,10 @@ export class McpHttpServer {
     private httpServer: HttpServer | null = null;
     private readonly app = express();
     private readonly sessions = new Map<string, Session>();
+    private readonly isProduction = process.env.NODE_ENV === 'production';
+    private readonly maxSessions = this.readPositiveInt(process.env.MCP_MAX_SESSIONS, 200);
+    private readonly sessionTtlMs = this.readPositiveInt(process.env.MCP_SESSION_TTL_MS, 30 * 60 * 1000);
+    private readonly corsOrigins = this.readCorsOrigins(process.env.MCP_CORS_ORIGIN);
 
     constructor(
         @inject(Types.McpServerSetup) mcpServerSetup: McpServerSetup,
@@ -51,7 +57,33 @@ export class McpHttpServer {
             this.logger.info(`Starting HTTP Streaming server on port ${this.port}`);
 
             this.app.use(helmet());
-            this.app.use(cors());
+            this.app.use(cors({
+                origin: (origin, callback) => {
+                    if (!origin && !this.isProduction) {
+                        callback(null, true);
+                        return;
+                    }
+
+                    if (!origin) {
+                        callback(new Error('Origin header is required in production mode.'));
+                        return;
+                    }
+
+                    if (this.corsOrigins.size === 0 && !this.isProduction) {
+                        callback(null, true);
+                        return;
+                    }
+
+                    if (this.corsOrigins.has(origin)) {
+                        callback(null, true);
+                        return;
+                    }
+
+                    callback(new Error('CORS origin is not allowed.'));
+                },
+                methods: ['GET', 'POST', 'DELETE'],
+                allowedHeaders: ['content-type', 'mcp-session-id', 'x-api-key']
+            }));
             this.app.use(express.json());
 
             this.app.get('/health', (req, res) => {
@@ -72,13 +104,25 @@ export class McpHttpServer {
                     const isInitialize = isInitializeRequest(req.body) || req.body?.method === 'initialize';
 
                     if (!sessionId && isInitialize) {
+                        if (this.sessions.size >= this.maxSessions) {
+                            res.status(429).json({
+                                jsonrpc: '2.0',
+                                error: {
+                                    code: -32001,
+                                    message: 'Too many active MCP sessions'
+                                },
+                                id: req.body?.id ?? null
+                            });
+                            return;
+                        }
+
                         const server = this.mcpServerFactory.create();
                         this.mcpServerSetup.configureServer(server, apiKey);
 
                         const transport = new StreamableHTTPServerTransport({
                             sessionIdGenerator: () => randomUUID(),
                             onsessioninitialized: (sid) => {
-                                this.sessions.set(sid, {transport, server});
+                                this.upsertSession(sid, transport, server);
                             }
                         });
 
@@ -87,6 +131,7 @@ export class McpHttpServer {
                             if (isClosing) return;
                             isClosing = true;
                             if (transport.sessionId) {
+                                this.clearSessionTimer(transport.sessionId);
                                 this.sessions.delete(transport.sessionId);
                             }
                             transport.onclose = undefined;
@@ -131,6 +176,7 @@ export class McpHttpServer {
                     }
 
                     const session = this.sessions.get(sessionId)!;
+                    this.touchSession(sessionId);
                     await session.transport.handleRequest(req, res);
                 } catch (error: unknown) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -150,6 +196,7 @@ export class McpHttpServer {
                     }
 
                     const session = this.sessions.get(sessionId)!;
+                    this.touchSession(sessionId);
                     await session.transport.handleRequest(req, res);
                 } catch (error: unknown) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -178,6 +225,7 @@ export class McpHttpServer {
 
             for (const [sessionId, session] of this.sessions) {
                 try {
+                    this.clearSessionTimer(sessionId);
                     await session.transport.close();
                     await session.server.close();
                 } catch (error: unknown) {
@@ -206,5 +254,68 @@ export class McpHttpServer {
             });
             throw error;
         }
+    }
+
+    private readPositiveInt(value: string | undefined, fallback: number): number {
+        const parsed = value ? Number.parseInt(value, 10) : NaN;
+        if (Number.isNaN(parsed) || parsed <= 0) {
+            return fallback;
+        }
+        return parsed;
+    }
+
+    private readCorsOrigins(value: string | undefined): Set<string> {
+        if (!value) {
+            return new Set<string>();
+        }
+        return new Set(
+            value
+                .split(',')
+                .map((entry) => entry.trim())
+                .filter((entry) => entry.length > 0)
+        );
+    }
+
+    private upsertSession(sessionId: string, transport: StreamableHTTPServerTransport, server: McpServer): void {
+        this.clearSessionTimer(sessionId);
+        const session: Session = {
+            transport,
+            server,
+            expiresAt: Date.now() + this.sessionTtlMs
+        };
+        session.ttlTimer = setTimeout(() => {
+            this.expireSession(sessionId);
+        }, this.sessionTtlMs);
+        session.ttlTimer.unref();
+        this.sessions.set(sessionId, session);
+    }
+
+    private touchSession(sessionId: string): void {
+        const existing = this.sessions.get(sessionId);
+        if (!existing) {
+            return;
+        }
+        this.upsertSession(sessionId, existing.transport, existing.server);
+    }
+
+    private clearSessionTimer(sessionId: string): void {
+        const existing = this.sessions.get(sessionId);
+        if (existing?.ttlTimer) {
+            clearTimeout(existing.ttlTimer);
+            existing.ttlTimer = undefined;
+        }
+    }
+
+    private expireSession(sessionId: string): void {
+        const session = this.sessions.get(sessionId);
+        if (!session) {
+            return;
+        }
+
+        this.logger.info(`Expiring MCP session ${sessionId}`);
+        this.clearSessionTimer(sessionId);
+        this.sessions.delete(sessionId);
+        session.transport.close().catch(() => {});
+        session.server.close().catch(() => {});
     }
 }

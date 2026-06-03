@@ -3,6 +3,7 @@ import * as dtos from '../../domain/contracts/schemas/index.js';
 export interface IBitbucketUseCase {
     bitbucketCreatePullRequest(input: dtos.CreatePullRequestInput): Promise<any>;
     bitbucketGetPullRequestDetails(input: dtos.GetPullRequestInput): Promise<any>;
+    bitbucketApprovePullRequest(input: dtos.ApprovePullRequestInput): Promise<any>;
     bitbucketMergePullRequest(input: dtos.MergePullRequestInput): Promise<any>;
     bitbucketDeclinePullRequest(input: dtos.DeclinePullRequestInput): Promise<any>;
     bitbucketAddGeneralPullRequestComment(input: dtos.AddCommentInput): Promise<any>;

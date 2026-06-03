@@ -4,6 +4,7 @@ import { PullRequestParams } from '../../domain/contracts/input/PullRequestParam
 export interface IBitbucketClientFacade {
     createBitbucketPullRequest(input: dtos.CreatePullRequestInput): Promise<any>;
     getBitbucketPullRequestDetails(input: dtos.GetPullRequestInput): Promise<any>;
+    approveBitbucketPullRequest(input: dtos.ApprovePullRequestInput): Promise<any>;
     mergeBitbucketPullRequest(prParams: PullRequestParams, mergeOptions: dtos.MergeOptionType): Promise<any>;
     declineBitbucketPullRequest(prParams: PullRequestParams, message?: string): Promise<any>;
     addBitbucketGeneralPullRequestComment(prParams: PullRequestParams, commentOptions: dtos.CommentOptionType): Promise<any>;
