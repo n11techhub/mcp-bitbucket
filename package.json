@@ -1,6 +1,6 @@
 {
   "name": "mcp-bitbucket",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A Node.js/TypeScript MCP server for Atlassian Bitbucket that enables AI systems to interact with repositories, pull requests, and code.",
   "type": "module",
   "main": "dist/index.js",
@@ -13,7 +13,7 @@
     "dev": "tsc -w",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
-    "inspector": "npx @modelcontextprotocol/inspector dist/index.js"
+    "inspector": "ENABLE_HTTP_TRANSPORT=false npx @modelcontextprotocol/inspector node dist/index.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

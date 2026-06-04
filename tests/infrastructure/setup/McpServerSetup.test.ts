@@ -74,7 +74,8 @@ describe('McpServerSetup', () => {
 
         expect(listResult.tools.length).toBeGreaterThan(0);
         expect(bitbucketUseCase.bitbucketListWorkspaces).toHaveBeenCalledWith({});
-        expect(callResult).toEqual({ content: [] });
+        expect(callResult.content?.[0]?.type).toBe('text');
+        expect(JSON.parse(callResult.content?.[0]?.text)).toEqual({ content: [] });
     });
 
     it('rejects tool execution when authentication fails', async () => {
@@ -119,7 +120,9 @@ describe('McpServerSetup', () => {
         setup.configureServer(fakeServer, undefined);
 
         const callHandler = setRequestHandler.mock.calls[1][1];
-        await expect(callHandler({ params: { name: 'bitbucket_list_workspaces', arguments: {} } })).resolves.toEqual({ ok: true });
+        const result = await callHandler({ params: { name: 'bitbucket_list_workspaces', arguments: {} } });
+        expect(result.content?.[0]?.type).toBe('text');
+        expect(JSON.parse(result.content?.[0]?.text)).toEqual({ ok: true });
         expect(logger.warn).toHaveBeenCalledWith('MCP_API_KEY is not set. The server will not require authentication.');
     });
 
@@ -202,5 +205,3 @@ describe('McpServerSetup', () => {
         axiosSpy.mockRestore();
     });
 });
-
-

@@ -4,6 +4,23 @@ import fs from 'fs';
 import {fileURLToPath} from 'url';
 
 const {combine, timestamp, printf, colorize, errors, json} = winston.format;
+const allLogLevels = Object.keys(winston.config.npm.levels);
+
+function isHttpTransportEnabled(): boolean {
+    const enableHttp = process.env.ENABLE_HTTP_TRANSPORT;
+    return enableHttp === '1' || enableHttp === 'true' || enableHttp === 'yes';
+}
+
+function createConsoleTransport(level: string, format: winston.Logform.Format): winston.transport {
+    // STDIO MCP requires stdout to contain only protocol frames.
+    // Route all console log levels to stderr unless HTTP transport is enabled.
+    const forceStderr = !isHttpTransportEnabled();
+    return new winston.transports.Console({
+        format,
+        level,
+        stderrLevels: forceStderr ? allLogLevels : ['error'],
+    });
+}
 
 function safeToString(value: any): string {
     if (value === null || value === undefined) {
@@ -124,7 +141,12 @@ function initializeLogger(): winston.Logger {
                     return `${ts} [${serviceName ?? 'fallback-loggerConfiguration'}] ${level}: ${logMessage}`;
                 })
             ),
-            transports: [new winston.transports.Console()],
+            transports: [createConsoleTransport('debug', combine(
+                colorize(),
+                timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+                errors({stack: true}),
+                consoleLogFormat
+            ))],
             defaultMeta: {service: 'mcp-bitbucket-fallback'},
         });
         fallbackLogger.error('[Logger] Winston file loggerConfiguration failed to initialize. Falling back to console-only loggerConfiguration.');
@@ -135,24 +157,18 @@ function initializeLogger(): winston.Logger {
 const loggerConfiguration: winston.Logger = initializeLogger();
 
 if (process.env.NODE_ENV !== 'production') {
-    loggerConfiguration.add(new winston.transports.Console({
-        format: combine(
-            colorize(),
-            timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
-            errors({stack: true}),
-            consoleLogFormat
-        ),
-        level: 'debug',
-    }));
+    loggerConfiguration.add(createConsoleTransport('debug', combine(
+        colorize(),
+        timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+        errors({stack: true}),
+        consoleLogFormat
+    )));
 } else {
-    loggerConfiguration.add(new winston.transports.Console({
-        format: combine(
-            timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
-            errors({stack: true}),
-            consoleLogFormat
-        ),
-        level: 'info',
-    }));
+    loggerConfiguration.add(createConsoleTransport('info', combine(
+        timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+        errors({stack: true}),
+        consoleLogFormat
+    )));
 }
 
 export default loggerConfiguration;

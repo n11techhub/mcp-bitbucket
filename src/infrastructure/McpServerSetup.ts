@@ -220,7 +220,15 @@ export class McpServerSetup {
         }
 
         try {
-            return await handler(args);
+            const result = await handler(args);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: typeof result === "string" ? result : JSON.stringify(result, null, 2)
+                    }
+                ]
+            };
         } catch (error) {
             this.logger.error('[CallToolRequestSchema] Tool execution error', { error });
             if (error instanceof McpError) throw error;
