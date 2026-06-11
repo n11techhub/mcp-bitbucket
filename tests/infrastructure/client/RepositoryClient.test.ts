@@ -72,7 +72,7 @@ describe('RepositoryClient', () => {
             name: 'feature/a',
             startPoint: 'main',
         });
-        expect(api.get).toHaveBeenCalledWith('/projects/N11/repos/repo/raw/src%2Fa.ts', {
+        expect(api.get).toHaveBeenCalledWith('/projects/N11/repos/repo/raw/src/a.ts', {
             params: { at: 'refs/heads/main' },
             responseType: 'text',
         });
@@ -184,6 +184,12 @@ describe('RepositoryClient', () => {
         await client.browseBitbucketDirectory({ workspaceSlug: 'N11', repoSlug: 'repo', path: '/src', revision: 'main' } as any);
         expect(api.get).toHaveBeenCalledWith('/projects/N11/repos/repo/browse/src', {
             params: { at: 'main' },
+        });
+
+        api.get.mockResolvedValueOnce({ data: { values: [] } });
+        await client.browseBitbucketDirectory({ workspaceSlug: 'N11', repoSlug: 'repo', path: '/src/main/java' } as any);
+        expect(api.get).toHaveBeenCalledWith('/projects/N11/repos/repo/browse/src/main/java', {
+            params: {},
         });
 
         (axios as any).isAxiosError.mockReturnValue(true);

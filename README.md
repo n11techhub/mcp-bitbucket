@@ -1,13 +1,28 @@
 # mcp-bitbucket
 
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-2.1.1-blue)
+![Version](https://img.shields.io/badge/version-2.1.2-blue)
 [![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-n11tech%2Fmcp--bitbucket-blue?logo=github&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/pkgs/container/mcp-bitbucket)
 [![Docker Build](https://img.shields.io/github/actions/workflow/status/n11tech/mcp-bitbucket/docker-publish.yml?branch=main&label=Docker%20Build&logo=docker&logoColor=white)](https://github.com/n11tech/mcp-bitbucket/actions/workflows/docker-publish.yml)
 
 **A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Bitbucket Server/Data Center.**
 
 This server enables AI systems (e.g., LLMs, AI coding assistants) to securely interact with your self-hosted Bitbucket repositories, pull requests, projects, and code in real time through both standard stdio and HTTP streaming transports.
+
+## Version 2.1.2 Release Notes
+
+**Bitbucket File Content Path Fix** (June 2026)
+
+This patch release fixes Bitbucket Server/Data Center path handling for file and directory operations.
+
+### 🐛 Bug Fixes
+- **Fixed**: `bitbucket_get_file_content` path encoding for nested file paths. Path segments are now encoded safely while preserving `/` separators required by Bitbucket REST path parameters.
+- **Fixed**: `bitbucket_browse_directory` path handling for nested directories using the same segment-based encoding behavior.
+
+### ⚠️ Breaking Changes
+None - this is a backward-compatible bugfix.
+
+---
 
 ## Version 2.1.1 Release Notes
 

@@ -130,7 +130,8 @@ export class RepositoryClient extends BaseClient implements IRepositoryClient {
         const { workspaceSlug, repoSlug, filePath, revision } = input;
         const projectKey = workspaceSlug; // Assuming workspaceSlug maps to projectKey
         const sanitizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
-        let apiUrl = `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/raw/${encodeURIComponent(sanitizedPath)}`;
+        const encodedPath = this.encodePathSegments(sanitizedPath);
+        let apiUrl = `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/raw/${encodedPath}`;
 
         const params: any = {};
         if (revision) {
@@ -197,7 +198,7 @@ export class RepositoryClient extends BaseClient implements IRepositoryClient {
 
         let apiUrl = `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}/browse`;
         if (normalizedPath) {
-            apiUrl += `/${encodeURIComponent(normalizedPath)}`;
+            apiUrl += `/${this.encodePathSegments(normalizedPath)}`;
         }
 
         const params: any = {};
@@ -226,5 +227,13 @@ export class RepositoryClient extends BaseClient implements IRepositoryClient {
 
     private getDefaultProjectKey(): string | undefined {
         return this.defaultProject ?? undefined;
+    }
+
+    private encodePathSegments(path: string): string {
+        return path
+            .split('/')
+            .filter(segment => segment.length > 0)
+            .map(segment => encodeURIComponent(segment))
+            .join('/');
     }
 }
